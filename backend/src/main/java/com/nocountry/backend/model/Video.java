@@ -38,6 +38,9 @@ public class Video {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
