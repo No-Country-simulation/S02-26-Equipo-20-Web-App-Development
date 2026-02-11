@@ -1,36 +1,7 @@
+import type { AuthResponse, LoginRequest, RegisterRequest } from '@/types/auth.types';
 import api from '../axios.config';
 import { API_ENDPOINTS } from '../endpoints';
-
-// Tipos (los moveremos a @/types después)
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-    plan: 'free' | 'premium';
-    createdAt: string;
-  };
-  token: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  plan: 'free' | 'premium';
-  createdAt: string;
-}
+import type { User } from '@/types/user.types';
 
 /**
  * Servicio de autenticación
@@ -43,9 +14,15 @@ export const authService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, data);
 
-    // Guardar token y usuario en localStorage
+    // Guardar token en localStorage
     localStorage.setItem('auth_token', response.data.token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
+
+    // Convertir UserPublic a User antes de guardar
+    const fullUser: User = {
+      ...response.data.user,
+      country: null, // El backend no devuelve country en login
+    };
+    localStorage.setItem('user', JSON.stringify(fullUser));
 
     return response.data;
   },
@@ -56,9 +33,15 @@ export const authService = {
   async register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, data);
 
-    // Guardar token y usuario en localStorage
+    // Guardar token en localStorage
     localStorage.setItem('auth_token', response.data.token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
+
+    // Convertir UserPublic a User antes de guardar
+    const fullUser: User = {
+      ...response.data.user,
+      country: data.country || null,
+    };
+    localStorage.setItem('user', JSON.stringify(fullUser));
 
     return response.data;
   },

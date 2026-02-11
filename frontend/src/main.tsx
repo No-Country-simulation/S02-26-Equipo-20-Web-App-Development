@@ -5,11 +5,14 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from '@/lib/queryClient';
 import App from './App';
 import './index.css';
+import { AuthProvider } from './context/AuthProvider';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
 
       {/* DevTools solo en desarrollo */}
       {import.meta.env.DEV && (
