@@ -1,0 +1,46 @@
+package com.nocountry.backend.auth;
+
+import com.nocountry.backend.model.User;
+import com.nocountry.backend.repository.UserRepository;
+import com.nocountry.backend.security.JwtUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
+
+    public AuthResponse register(RegisterRequest request) {
+        var user = new User();
+        user.setName(request.name());
+        user.setLastname(request.lastname());
+        user.setEmail(request.email());
+        user.setCountry(request.country());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setDeleted(false);
+
+        userRepository.save(user);
+        var jwtToken = jwtUtils.generateToken(user);
+        return new AuthResponse(jwtToken);
+    }
+
+    public AuthResponse login(AuthRequest request) {
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+        );
+
+        var user = userRepository.findByEmail(request.email())
+                .orElseThrow();
+        var jwtToken = jwtUtils.generateToken(user);
+        return new AuthResponse(jwtToken);
+    }
+}
