@@ -1,4 +1,4 @@
-package com.nocountry.backend.auth;
+package com.nocountry.backend.dto.auth;
 
 public record AuthResponse(String token) {
 
