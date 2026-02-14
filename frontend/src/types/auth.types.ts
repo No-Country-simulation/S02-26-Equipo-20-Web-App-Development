@@ -10,7 +10,6 @@ export interface RegisterRequest {
   lastname: string;
   email: string;
   password: string;
-  country?: string;
 }
 
 export interface AuthResponse {
@@ -29,5 +28,4 @@ export interface RegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
-  country?: string;
 }

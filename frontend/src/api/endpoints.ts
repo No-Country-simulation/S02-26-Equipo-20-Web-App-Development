@@ -1,5 +1,4 @@
 export const API_ENDPOINTS = {
-  // Auth
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
@@ -8,7 +7,6 @@ export const API_ENDPOINTS = {
     REFRESH: '/auth/refresh',
   },
 
-  // Videos
   VIDEOS: {
     LIST: '/videos',
     UPLOAD: '/videos/upload',
@@ -18,14 +16,12 @@ export const API_ENDPOINTS = {
     STATUS: (id: string) => `/videos/${id}/status`,
   },
 
-  // Shorts (videos generados)
   SHORTS: {
     LIST: (videoId: string) => `/videos/${videoId}/shorts`,
     DETAIL: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}`,
     DOWNLOAD: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}/download`,
   },
 
-  // User
   USER: {
     PROFILE: '/user/profile',
     UPDATE: '/user/profile',

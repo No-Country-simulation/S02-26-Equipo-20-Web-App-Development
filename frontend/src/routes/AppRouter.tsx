@@ -9,6 +9,7 @@ import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
+import VideoDetail from '@/pages/VideoDetail';
 
 /**
  * Configuración de rutas de la aplicación
@@ -45,8 +46,8 @@ const router = createBrowserRouter([
             element: <Profile />,
           },
           {
-            path: 'dashboard',
-            element: <Dashboard />,
+            path: 'videos/:id',
+            element: <VideoDetail />,
           },
         ],
       },

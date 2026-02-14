@@ -20,7 +20,6 @@ export const authService = {
     // Convertir UserPublic a User antes de guardar
     const fullUser: User = {
       ...response.data.user,
-      country: null, // El backend no devuelve country en login
     };
     localStorage.setItem('user', JSON.stringify(fullUser));
 
@@ -39,7 +38,6 @@ export const authService = {
     // Convertir UserPublic a User antes de guardar
     const fullUser: User = {
       ...response.data.user,
-      country: data.country || null,
     };
     localStorage.setItem('user', JSON.stringify(fullUser));
 
