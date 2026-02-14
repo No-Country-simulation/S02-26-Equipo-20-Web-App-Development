@@ -1,5 +1,6 @@
 package com.nocountry.backend.service;
 
+import com.nocountry.backend.dto.UserResponse;
 import com.nocountry.backend.dto.auth.AuthRequest;
 import com.nocountry.backend.dto.auth.AuthResponse;
 import com.nocountry.backend.dto.auth.RegisterRequest;
@@ -31,7 +32,9 @@ public class AuthService {
         userRepository.save(user);
 
         var jwtToken = jwtUtils.generateToken(user);
-        return new AuthResponse(jwtToken);
+        return new AuthResponse(
+                jwtToken,
+                mapToUserResponse(user));
     }
 
     public AuthResponse login(AuthRequest request) {
@@ -45,7 +48,9 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         var jwtToken = jwtUtils.generateToken(user);
-        return new AuthResponse(jwtToken);
+        return new AuthResponse(
+                jwtToken,
+                mapToUserResponse(user));
     }
 
     private User buildUser(RegisterRequest request) {
@@ -57,5 +62,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setDeleted(false);
         return user;
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getLastname(),
+                user.getEmail(),
+                user.getCountry());
     }
 }
