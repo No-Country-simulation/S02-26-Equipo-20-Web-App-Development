@@ -1,33 +1,20 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // Obtener URL base desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
-// Crear instancia de axios
+/**
+ * Instancia de axios configurada para autenticación con cookies
+ * El token JWT se envía automáticamente en las cookies (HttpOnly)
+ */
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 30000, // 30 segundos
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enviar cookies automáticamente en cada request
 });
-
-// Request interceptor - Agregar token a todas las requests
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // Obtener token del localStorage
-    const token = localStorage.getItem('auth_token');
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  },
-);
 
 // Response interceptor - Manejar errores globalmente
 api.interceptors.response.use(
@@ -39,8 +26,7 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Token inválido o expirado
-          localStorage.removeItem('auth_token');
+          // Token inválido o expirado (cookie)
           localStorage.removeItem('user');
           window.location.href = '/login';
           break;

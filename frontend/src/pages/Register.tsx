@@ -93,6 +93,16 @@ export default function Register() {
               {...register('email')}
             />
 
+            {/* Country */}
+            <Input
+              label="País"
+              type="text"
+              placeholder="Argentina"
+              error={errors.country?.message}
+              disabled={isSubmitting}
+              {...register('country')}
+            />
+
             {/* Password */}
             <Input
               label="Contraseña"
