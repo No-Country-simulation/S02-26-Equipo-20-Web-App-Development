@@ -8,7 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.nocountry.backend.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    boolean existsByEmail(String email);
+
     List<User> findByDeletedFalse();
 
     Optional<User> findByIdAndDeletedFalse(Long id);
+
+    Optional<User> findByEmail(String email);
 }
