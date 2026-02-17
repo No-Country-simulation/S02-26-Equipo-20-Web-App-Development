@@ -16,9 +16,6 @@ export interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-/**
- * Props del provider
- */
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -32,9 +29,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initAuth = () => {
       try {
         const storedUser = authService.getStoredUser();
-        const token = authService.getStoredToken();
-
-        if (storedUser && token) {
+        if (storedUser) {
           setUser(storedUser);
         }
       } catch (error) {
