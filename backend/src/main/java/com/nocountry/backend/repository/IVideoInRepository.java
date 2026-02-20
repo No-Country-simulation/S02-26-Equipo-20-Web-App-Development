@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.nocountry.backend.model.VideoIn;
 
-public interface VideoRepository extends JpaRepository<VideoIn, Long> {
+public interface IVideoInRepository extends JpaRepository<VideoIn, Long> {
     List<VideoIn> findByDeletedFalse();
 
     Optional<VideoIn> findByIdAndDeletedFalse(Long id);
