@@ -5,7 +5,7 @@ import com.nocountry.backend.dto.auth.AuthRequest;
 import com.nocountry.backend.dto.auth.AuthResponse;
 import com.nocountry.backend.dto.auth.RegisterRequest;
 import com.nocountry.backend.model.User;
-import com.nocountry.backend.repository.UserRepository;
+import com.nocountry.backend.repository.IUserRepository;
 import com.nocountry.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
