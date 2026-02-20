@@ -1,14 +1,12 @@
+import os
+
 import cv2
+import imageio_ffmpeg
 import mediapipe as mp
+import whisper
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import os
 from moviepy import VideoFileClip
-import torch
-import whisper
-from moviepy import TextClip, CompositeVideoClip
-import imageio_ffmpeg
-from moviepy import VideoFileClip, TextClip, CompositeVideoClip
 
 # Esto localiza el ffmpeg que acabamos de instalar con pip
 ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
