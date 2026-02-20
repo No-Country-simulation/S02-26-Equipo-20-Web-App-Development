@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 class InstructionsVideo(BaseModel):
     """Instrucciones para el procesamiento del video"""
     
-    is_automatic: bool = Field(alias="isAutomatic")
+    with_scene_detector: bool = Field(alias="withSceneDetector")
     is_follow_face: bool = Field(alias="isFollowFace")
     min_scene_duration: int = Field(alias="minSceneDuration")
     max_scene_duration: int = Field(alias="maxSceneDuration")
