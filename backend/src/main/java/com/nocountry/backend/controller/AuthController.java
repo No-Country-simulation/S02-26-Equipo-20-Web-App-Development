@@ -36,7 +36,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false) // poner true en producción (https)
                 .path("/")
-                .maxAge(60 * 60 * 10)
+                .maxAge(60L * 60L * 10L)
                 .sameSite("Lax")
                 .build();
 
@@ -55,7 +55,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(60 * 60 * 10)
+                .maxAge(60L * 60L * 10L)
                 .sameSite("Lax")
                 .build();
 
