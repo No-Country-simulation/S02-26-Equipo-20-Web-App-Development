@@ -10,6 +10,7 @@ import com.nocountry.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -58,9 +59,8 @@ public class AuthService {
         user.setName(request.name());
         user.setLastname(request.lastname());
         user.setEmail(request.email());
-        user.setCountry(request.country());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setDeleted(false);
+        user.setEnabled(true);
         return user;
     }
 
@@ -69,7 +69,19 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getLastname(),
-                user.getEmail(),
-                user.getCountry());
+                user.getEmail());
+    }
+
+    public UserResponse me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Usuario no autenticado");
+        }
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        return mapToUserResponse(user);
     }
 }

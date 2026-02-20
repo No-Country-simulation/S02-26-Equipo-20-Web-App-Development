@@ -31,15 +31,14 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_user")
     private Long id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "last_name", nullable = false)
     private String lastname;
-
-    private String country;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -48,7 +47,7 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private boolean deleted = false;
+    private boolean enabled = true;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Video> videos = new ArrayList<>();
@@ -87,6 +86,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !deleted;
+        return enabled;
     }
 }
