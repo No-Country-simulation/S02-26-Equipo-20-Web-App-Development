@@ -11,4 +11,6 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     List<Video> findByDeletedFalse();
 
     Optional<Video> findByIdAndDeletedFalse(Long id);
+    List<Video> findByUserIdAndDeletedFalse(Long userId);
+    Optional<Video> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);
 }
