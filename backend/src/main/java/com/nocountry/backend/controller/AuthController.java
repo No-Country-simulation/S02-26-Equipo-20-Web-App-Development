@@ -1,11 +1,13 @@
 package com.nocountry.backend.controller;
 
+import com.nocountry.backend.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.nocountry.backend.dto.auth.AuthRequest;
@@ -75,5 +77,10 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(Authentication authentication) {
+        return ResponseEntity.ok(authService.me(authentication));
     }
 }
