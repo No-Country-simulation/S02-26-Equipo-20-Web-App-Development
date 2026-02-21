@@ -34,11 +34,11 @@ public class VideoOut {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "duration", nullable = false)
-    private String duration;
+    @Column(name = "duration_seconds", nullable = false)
+    private Long durationSeconds;
 
-    @Column(name = "video_size", nullable = false)
-    private String videoSize;
+    @Column(name = "video_size_bytes", nullable = false)
+    private Long videoSizeBytes;
 
     @Column(name = "only_rotated")
     private boolean onlyRotated = false;
@@ -49,4 +49,12 @@ public class VideoOut {
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
+
+    public VideoOut(VideoIn videoIn, String path, String name, Long durationSeconds, Long videoSizeBytes) {
+        this.videoIn = videoIn;
+        this.path = path;
+        this.name = name;
+        this.durationSeconds = durationSeconds;
+        this.videoSizeBytes = videoSizeBytes;
+    }
 }

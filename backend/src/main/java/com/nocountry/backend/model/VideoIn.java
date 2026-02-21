@@ -1,5 +1,6 @@
 package com.nocountry.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "videos_in")
@@ -34,11 +36,18 @@ public class VideoIn {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "duration", nullable = false)
-    private String duration;
+    @Column(name = "duration")
+    private Long duration;
 
     @Column(name = "video_size", nullable = false)
-    private String videoSize;
+    private Long videoSize;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "video_state",nullable = false)
+    private VideoState videoState;
+
+    @Column(name = "video_instructions", nullable = false)
+    private String videoInstructions;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -46,5 +55,9 @@ public class VideoIn {
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "videoIn", cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<VideoOut> videoOuts;
 
 }
