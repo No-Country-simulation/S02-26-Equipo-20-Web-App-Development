@@ -7,7 +7,7 @@ import uuid
 from typing import List, Tuple, Dict
 
 from config import RedisConfig
-from models import VideoJob, VideoResult
+from models import VideoJob, VideoOutputResults
 from services import RedisService, LockService, ProcessorService
 from services.processor_service import process_video
 
@@ -54,7 +54,7 @@ class VideoWorker:
         
         logger.info("Configuración completada")
     
-    def publish_result(self, result: VideoResult) -> None:
+    def publish_result(self, result: VideoOutputResults) -> None:
         """
         Publica el resultado del procesamiento al stream de resultados
         

@@ -1,8 +1,10 @@
 import logging
 import time
+from pathlib import Path
 from typing import Tuple
-from models import VideoJob, VideoResult
+from models import VideoJob, VideoOutputResults
 from .video_converter import video_converter
+from .output_converter import get_video_duration_seconds
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ def validate_video_path(video_path: str) -> bool:
     return True
 
 
-def process_video(job: VideoJob) -> Tuple[bool, VideoResult]:
+def process_video(job: VideoJob) -> Tuple[bool, VideoOutputResults]:
     """
     Procesa un video según las instrucciones proporcionadas
 
@@ -50,16 +52,17 @@ def process_video(job: VideoJob) -> Tuple[bool, VideoResult]:
 
     try:
         # Generar paths simulados de videos resultantes
-        result_paths = video_converter(job)
+        videos = video_converter(job)
 
         elapsed = time.time() - start_time
         logger.info(f"Procesamiento completado en {elapsed:.2f}s")
-        logger.info(f"Videos generados: {len(result_paths)}")
+        logger.info(f"Videos generados: {len(videos)}")
 
-        result = VideoResult(
+        result = VideoOutputResults(
             idJob=job.id_job,
+            baseVideoDurationSeconds=get_video_duration_seconds(Path(job.video_path)),
             state="done",
-            videoResultPaths=result_paths
+            videos=videos
         )
 
         return True, result
@@ -69,10 +72,10 @@ def process_video(job: VideoJob) -> Tuple[bool, VideoResult]:
         logger.error(f"Error procesando video después de {elapsed:.2f}s: {e}")
 
         # Crear resultado de fallo
-        result = VideoResult(
+        result = VideoOutputResults(
             idJob=job.id_job,
             state="failed",
-            videoResultPaths=[]
+            videos=[]
         )
 
         return False, result

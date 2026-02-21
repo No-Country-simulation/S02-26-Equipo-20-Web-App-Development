@@ -27,7 +27,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(
+    public ResponseEntity<UserResponse> register(
             @Valid @RequestBody RegisterRequest request,
             HttpServletResponse response) {
         AuthResponse authResponse = authService.register(request);
@@ -36,17 +36,17 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false) // poner true en producción (https)
                 .path("/")
-                .maxAge(60 * 60 * 10)
+                .maxAge(60L * 60L * 10L)
                 .sameSite("Lax")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse.user());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
+    public ResponseEntity<UserResponse> login(
             @Valid @RequestBody AuthRequest request,
             HttpServletResponse response) {
         AuthResponse authResponse = authService.login(request);
@@ -55,17 +55,17 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(60 * 60 * 10)
+                .maxAge(60L * 60L * 10L)
                 .sameSite("Lax")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(authResponse.user());
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
                 .secure(false)

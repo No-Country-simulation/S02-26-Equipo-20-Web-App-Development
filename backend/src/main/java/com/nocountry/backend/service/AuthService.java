@@ -5,7 +5,7 @@ import com.nocountry.backend.dto.auth.AuthRequest;
 import com.nocountry.backend.dto.auth.AuthResponse;
 import com.nocountry.backend.dto.auth.RegisterRequest;
 import com.nocountry.backend.model.User;
-import com.nocountry.backend.repository.UserRepository;
+import com.nocountry.backend.repository.IUserRepository;
 import com.nocountry.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,11 +15,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
@@ -61,6 +63,8 @@ public class AuthService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEnabled(true);
+        user.setUserFolderName(generateUserFolderName());
+        user.setUserFolderSize(0L);
         return user;
     }
 
@@ -69,7 +73,8 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getLastname(),
-                user.getEmail());
+                user.getEmail(),
+                user.getUserFolderSize());
     }
 
     public UserResponse me(Authentication authentication) {
@@ -83,5 +88,9 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         return mapToUserResponse(user);
+    }
+
+    private String generateUserFolderName() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }
