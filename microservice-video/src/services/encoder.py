@@ -17,10 +17,26 @@ def detect_encoder():
 
     encoders = result.stdout
 
+    # NVENC
     if "h264_nvenc" in encoders:
-        ENCODER_CACHE = "h264_nvenc"
+        cuda_check = subprocess.run(
+            ["ldconfig", "-p"], capture_output=True, text=True
+        )
+        if "libcuda.so.1" in cuda_check.stdout:
+            ENCODER_CACHE = "h264_nvenc"
+        else:
+            ENCODER_CACHE = "libx264"
+    # AMF (AMD)
     elif "h264_amf" in encoders:
-        ENCODER_CACHE = "h264_amf"
+        # opcional: intentar verificar librerías AMD si quieres
+        # si no hay librerías, caer a libx264
+        amf_check = subprocess.run(
+            ["ldconfig", "-p"], capture_output=True, text=True
+        )
+        if "libamf.so" in amf_check.stdout:
+            ENCODER_CACHE = "h264_amf"
+        else:
+            ENCODER_CACHE = "libx264"
     else:
         ENCODER_CACHE = "libx264"
 
