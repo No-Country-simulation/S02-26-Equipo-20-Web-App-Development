@@ -1,10 +1,6 @@
 redis
 pydantic
 python-dotenv
-opencv-python
-mediapipe
-moviepy
-openai-whisper
-imageio-ffmpeg
 scenedetect
+opencv-python
 webrtcvad-wheels
