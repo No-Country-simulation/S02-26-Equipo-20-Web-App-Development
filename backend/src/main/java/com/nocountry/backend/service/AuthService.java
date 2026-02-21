@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -61,6 +63,8 @@ public class AuthService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEnabled(true);
+        user.setUserFolderName(generateUserFolderName());
+        user.setUserFolderSize(0L);
         return user;
     }
 
@@ -69,7 +73,8 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getLastname(),
-                user.getEmail());
+                user.getEmail(),
+                user.getUserFolderSize());
     }
 
     public UserResponse me(Authentication authentication) {
@@ -83,5 +88,9 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         return mapToUserResponse(user);
+    }
+
+    private String generateUserFolderName() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }
