@@ -1,4 +1,5 @@
 .venv/
+*.log
 
 # Python
 __pycache__/

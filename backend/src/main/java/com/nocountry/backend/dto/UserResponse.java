@@ -5,5 +5,5 @@ public record UserResponse(
         String name,
         String lastname,
         String email,
-        String country) {
+        Long folderSizeBytes) {
 }

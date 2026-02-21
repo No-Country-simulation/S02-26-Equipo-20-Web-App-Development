@@ -1,0 +1,194 @@
+{
+  "info": {
+    "_postman_id": "8e6b9a4b-d036-464f-9c4f-640f2c10d692",
+    "name": "VideoShorts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "30990045"
+  },
+  "item": [
+    {
+      "name": "subir_video",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "bf3af53e-e9b4-45c0-8921-b1a55ceee08e",
+              "src": "/C:/Users/eduar/Videos/El-caso-de-Jeffrey-Epstein-explicado.mp4"
+            },
+            {
+              "key": "instructions",
+              "value": "{\"withSceneDetector\":false,\"isFollowFace\":false,\"minSceneDuration\":80,\"maxSceneDuration\":150,\"numberOfSegments\":1,\"vectorTimes\":\"\"}",
+              "type": "text",
+              "uuid": "65ed74ea-c879-4edf-afdf-b50c8738ef19",
+              "contentType": "application/json"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/video/process-video",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "video",
+            "process-video"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "video_state",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/v1/video/job-status/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "video",
+            "job-status",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "video_ouput",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Ana\",\r\n  \"lastname\": \"Gómez\",\r\n  \"email\": \"ana.gomez@gmail.com\",\r\n  \"password\": \"miClaveSegura2026\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/video/output/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "video",
+            "output",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Ana\",\r\n  \"lastname\": \"Gómez\",\r\n  \"email\": \"ana.gomez@gmail.com\",\r\n  \"password\": \"miClaveSegura2026\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"ana.gomez@gmail.com\",\r\n  \"password\": \"miClaveSegura2026\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "me",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"ana.gomez@gmail.com\",\r\n  \"password\": \"miClaveSegura2026\"\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

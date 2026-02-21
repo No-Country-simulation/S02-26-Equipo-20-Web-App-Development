@@ -5,6 +5,7 @@ from pathlib import Path
 from models import VideoJob
 from .video_metadata import get_video_metadata
 from .scenes_detector import detect_scenes,create_scenes,adjust_scenes_with_vad
+from .output_converter import build_video_output
 from .filter import build_filter
 from .encoder import choose_encoder_settings
 
@@ -131,7 +132,8 @@ def video_converter(video_job: VideoJob):
             logger.error("stderr: %s", e.stderr)
             raise
 
-        outputs.append(str(output_file))
+        video_output = build_video_output(output_file)
+        outputs.append(video_output)
 
     logger.info("VIDEO_CONVERTER_COMPLETE | files=%d", len(outputs))
 

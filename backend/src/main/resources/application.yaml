@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: backend
+  #Redis Connection Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: password123
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 4
+          max-idle: 4
+          min-idle: 1
+          max-wait: -1ms
+  #JPA Configuration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+  #PostgreSQL Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shorts_video_db?sslmode=prefer&connect_timeout=10
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: PredictionConnectionPool
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+      leakDetectionThreshold: 15000
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+# Redis Configuration
+redis:
+  stream:
+    job:
+      name: video-jobs
+      max-length: 10000
+    result:
+      name: video-results
+  consumer:
+    job:
+      group: python-worker
+    result:
+      group: java-backend
+# File Storage Configuration
+video:
+  storage:
+    path: E:/uploads
+
+jwt:
+  secret: aSsatDQAOigsYH8Vf8eZASH1WG5ESHRmfWjF8yV0pT4=
+  expiration: 36000000
