@@ -20,7 +20,7 @@ export function Layout() {
     <div className="flex min-h-screen flex-col">
       {/* Header (solo en páginas internas como Dashboard, Profile) */}
       {showLayout && (
-        <Header isAuthenticated={isAuthenticated} userEmail={user?.email} onLogout={logout} />
+        <Header isAuthenticated={isAuthenticated} userName={user?.name} onLogout={logout} />
       )}
 
       {/* Contenido principal */}

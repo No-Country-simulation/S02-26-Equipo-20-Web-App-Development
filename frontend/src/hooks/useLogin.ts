@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { authService, type LoginRequest } from '@/api/services/auth.service';
 import { getErrorMessage } from '@/api/axios.config';
+import { authService } from '@/api/services/auth.service';
+import type { LoginRequest } from '@/types/auth.types';
 
 /**
  * Hook para login de usuario

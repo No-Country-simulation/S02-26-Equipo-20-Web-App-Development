@@ -4,28 +4,11 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
-    REFRESH: '/auth/refresh',
   },
-
   VIDEOS: {
-    LIST: '/videos',
-    UPLOAD: '/videos/upload',
-    DETAIL: (id: string) => `/videos/${id}`,
-    DELETE: (id: string) => `/videos/${id}`,
-    DOWNLOAD: (id: string) => `/videos/${id}/download`,
-    STATUS: (id: string) => `/videos/${id}/status`,
-  },
-
-  SHORTS: {
-    LIST: (videoId: string) => `/videos/${videoId}/shorts`,
-    DETAIL: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}`,
-    DOWNLOAD: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}/download`,
-  },
-
-  USER: {
-    PROFILE: '/user/profile',
-    UPDATE: '/user/profile',
-    CHANGE_PASSWORD: '/user/password',
+    UPLOAD: '/video/process-video',
+    STATUS: (idJob: string) => `/video/job-status/${idJob}`,
+    STREAM: (videoOutputId: string) => `/video/output/${videoOutputId}`,
   },
 } as const;
 

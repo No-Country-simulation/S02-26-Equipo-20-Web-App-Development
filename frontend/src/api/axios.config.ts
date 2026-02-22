@@ -26,9 +26,13 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Token inválido o expirado (cookie)
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+          // Solo redirigir si no estamos ya en login/register
+          if (
+            !window.location.pathname.includes('/login') &&
+            !window.location.pathname.includes('/register')
+          ) {
+            window.location.href = '/login';
+          }
           break;
         case 403:
           console.error('No tenés permisos para esta acción');

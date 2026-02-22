@@ -24,21 +24,15 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsSubmitting(true);
-
     try {
-      // Remover confirmPassword antes de enviar (backend no lo necesita)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword: _confirmPassword, ...registerData } = data;
-
       await registerUser(registerData);
       toast.success('¡Cuenta creada exitosamente!');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error al registrarse:', error);
-
-      // Manejar diferentes tipos de errores
       const err = error as { response?: { status?: number } };
-      if (err.response?.status === 409) {
+      if (err.response?.status === 409 || err.response?.status === 500) {
         toast.error('Este email ya está registrado');
       } else if (err.response?.status === 400) {
         toast.error('Datos inválidos. Verifica el formulario.');
@@ -91,16 +85,6 @@ export default function Register() {
               error={errors.email?.message}
               disabled={isSubmitting}
               {...register('email')}
-            />
-
-            {/* Country */}
-            <Input
-              label="País"
-              type="text"
-              placeholder="Argentina"
-              error={errors.country?.message}
-              disabled={isSubmitting}
-              {...register('country')}
             />
 
             {/* Password */}

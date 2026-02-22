@@ -24,16 +24,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Al cargar la app, verificar si hay sesión guardada
   useEffect(() => {
-    const initAuth = () => {
+    const initAuth = async () => {
       try {
-        const storedUser = authService.getStoredUser();
-        if (storedUser) {
-          setUser(storedUser);
-        }
-      } catch (error) {
-        console.error('Error al inicializar auth:', error);
+        // Verificar si la cookie sigue siendo válida
+        const user = await authService.me();
+        setUser(user);
+      } catch {
+        // Cookie expirada o inexistente — no autenticado
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

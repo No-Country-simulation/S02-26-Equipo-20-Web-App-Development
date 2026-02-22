@@ -10,12 +10,10 @@ export interface RegisterRequest {
   lastname: string;
   email: string;
   password: string;
-  country: string;
 }
 
 export interface AuthResponse {
   user: User;
-  token: string;
 }
 
 export interface LoginFormData {
@@ -28,6 +26,5 @@ export interface RegisterFormData {
   lastname: string;
   email: string;
   password: string;
-  country: string;
   confirmPassword: string;
 }

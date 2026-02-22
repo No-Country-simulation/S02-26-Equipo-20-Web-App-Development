@@ -3,5 +3,5 @@ export interface User {
   name: string;
   lastname: string;
   email: string;
-  country?: string;
+  folderSizeBytes: number;
 }
