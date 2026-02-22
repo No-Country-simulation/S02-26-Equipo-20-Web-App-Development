@@ -24,6 +24,7 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     // Manejar errores comunes
     if (error.response) {
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
       switch (error.response.status) {
         case 401:
           // Solo redirigir si no estamos ya en login/register
@@ -35,7 +36,11 @@ api.interceptors.response.use(
           }
           break;
         case 403:
-          console.error('No tenés permisos para esta acción');
+          // Si es el chequeo inicial de sesión, ignorar silenciosamente
+          const isRegister = error.config?.url?.includes('/auth/register');
+          if (!isAuthCheck && !isRegister && !window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
           break;
         case 404:
           console.error('Recurso no encontrado');
