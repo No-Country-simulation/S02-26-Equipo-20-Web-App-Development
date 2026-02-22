@@ -26,12 +26,85 @@ services:
     environment:
       - TZ=America/El_Salvador
     networks:
-      - redis_network
+      - short_video_network
+
+  postgres-db:
+    image: postgres:18.1-bookworm
+    container_name: postgres-db
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: short_video_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - short_video_network
+
+  backend-app:
+    image: eduardomaravill/backend:latest
+    container_name: backend-app
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: password123
+      DATABASE_URL: jdbc:postgresql://postgres-db:5432/short_video_db?sslmode=prefer&connect_timeout=10
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres123
+      STORAGE_PATH: /video
+      JWT_SECRET: aSsatDQAOigsYH8Vf8eZASH1WG5ESHRmfWjF8yV0pT4=
+      JWT_EXPIRATION: 36000000
+    ports:
+      - "8080:8080"
+    volumes:
+      - video_data:/video:cached
+    networks:
+      - short_video_network
+
+  worker-app:
+    image: eduardomaravill/python-worker:latest
+    container_name: worker-app
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend-app:
+        condition: service_started
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: password123
+      REDIS_DB: 0
+      LOCK_TTL: 900
+      CLAIM_IDLE: 60000
+      HEARTBEAT_INTERVAL: 30
+      BLOCK_TIME: 5000
+      BATCH_SIZE: 1
+    volumes:
+      - video_data:/video:cached
+    networks:
+      - short_video_network
 
 volumes:
   redis_data:
     driver: local
+  video_data:
+    driver: local
 
 networks:
-  redis_network:
+  short_video_network:
     driver: bridge
+
+#docker-compose up -d
+#docker-compose down
