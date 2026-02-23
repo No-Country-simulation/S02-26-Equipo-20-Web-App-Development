@@ -2,6 +2,7 @@ package com.nocountry.backend.service.impl;
 
 import com.nocountry.backend.dto.video.InstructionsVideo;
 import com.nocountry.backend.dto.video.JobState;
+import com.nocountry.backend.dto.video.VideoInWithVideoOutIds;
 import com.nocountry.backend.dto.video.VideoJob;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoIn;
@@ -26,6 +27,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -69,12 +74,12 @@ public class VideoServiceImpl implements IVideoService {
         VideoIn videoIn = videoInRepository
                 .findByIdAndUserIdAndDeletedFalse(idJob, user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Video not found"));
-        if (videoIn.getVideoState() == VideoState.FINISHED){
+        if (videoIn.getVideoState() == VideoState.FINISHED) {
             return new JobState(idJob,
                     videoIn.getVideoState(),
                     videoIn.getVideoOuts().stream().map(VideoOut::getId).toList());
-        }else {
-            return new JobState(idJob,videoIn.getVideoState(),null);
+        } else {
+            return new JobState(idJob, videoIn.getVideoState(), null);
         }
     }
 
@@ -99,6 +104,27 @@ public class VideoServiceImpl implements IVideoService {
                         .getMediaType(video)
                         .orElse(MediaType.APPLICATION_OCTET_STREAM))
                 .body(region);
+    }
+
+    @Override
+    public List<VideoInWithVideoOutIds> getAllVideos(User user) {
+        List<Object[]> rows =
+                videoInRepository.findVideoInIdAndVideoOutIdByUser(user.getId());
+        Map<Long, List<Long>> grouped = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            Long videoInId = (Long) row[0];
+            Long videoOutId = (Long) row[1];
+
+            grouped.computeIfAbsent(videoInId, k -> new ArrayList<>())
+                    .add(videoOutId);
+        }
+        return grouped.entrySet()
+                .stream()
+                .map(e -> new VideoInWithVideoOutIds(
+                        e.getKey(),
+                        e.getValue()
+                ))
+                .toList();
     }
 
     private ResourceRegion buildRegion(

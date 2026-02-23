@@ -2,6 +2,7 @@ package com.nocountry.backend.controller;
 
 import com.nocountry.backend.dto.video.InstructionsVideo;
 import com.nocountry.backend.dto.video.JobState;
+import com.nocountry.backend.dto.video.VideoInWithVideoOutIds;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.service.IVideoService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/video")
@@ -47,5 +49,10 @@ public class VideoController {
             @AuthenticationPrincipal User user
     ) throws IOException {
         return videoService.streamVideo(videoOutputId, headers, user);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<VideoInWithVideoOutIds>> getAllVideos(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok(videoService.getAllVideos(user));
     }
 }
