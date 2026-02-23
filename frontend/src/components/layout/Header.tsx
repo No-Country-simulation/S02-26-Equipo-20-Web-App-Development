@@ -3,11 +3,11 @@ import { Button } from '../ui/Button';
 
 interface HeaderProps {
   isAuthenticated?: boolean;
-  userEmail?: string;
+  userName?: string;
   onLogout?: () => void;
 }
 
-export function Header({ isAuthenticated = false, userEmail, onLogout }: HeaderProps) {
+export function Header({ isAuthenticated = false, userName, onLogout }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -45,11 +45,11 @@ export function Header({ isAuthenticated = false, userEmail, onLogout }: HeaderP
                   <button className="flex items-center gap-2 transition-opacity hover:opacity-80">
                     <div className="bg-primary-100 flex h-8 w-8 items-center justify-center rounded-full">
                       <span className="text-primary-700 text-sm font-medium">
-                        {userEmail?.charAt(0).toUpperCase()}
+                        {userName?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <span className="hidden text-sm font-medium text-gray-700 sm:block">
-                      {userEmail}
+                      {userName}
                     </span>
                   </button>
                 </Link>
