@@ -1,4 +1,4 @@
-package com.nocountry.backend.dto;
+package com.nocountry.backend.dto.users;
 
 public record UserResponse(
         Long id,
