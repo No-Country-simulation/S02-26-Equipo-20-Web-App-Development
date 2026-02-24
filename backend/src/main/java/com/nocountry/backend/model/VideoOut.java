@@ -35,7 +35,7 @@ public class VideoOut {
     private String name;
 
     @Column(name = "duration_seconds", nullable = false)
-    private Long durationSeconds;
+    private Integer durationSeconds;
 
     @Column(name = "video_size_bytes", nullable = false)
     private Long videoSizeBytes;
@@ -50,7 +50,7 @@ public class VideoOut {
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
-    public VideoOut(VideoIn videoIn, String path, String name, Long durationSeconds, Long videoSizeBytes) {
+    public VideoOut(VideoIn videoIn, String path, String name, Integer durationSeconds, Long videoSizeBytes) {
         this.videoIn = videoIn;
         this.path = path;
         this.name = name;

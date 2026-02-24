@@ -8,7 +8,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record VideoOutputResults(
         String idJob,
-        Long baseVideoDurationSeconds,
+        Integer baseVideoDurationSeconds,
         String state,
         List<VideoOutput> videos,
         LocalDateTime timestamp
