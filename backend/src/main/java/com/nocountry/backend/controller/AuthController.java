@@ -1,6 +1,6 @@
 package com.nocountry.backend.controller;
 
-import com.nocountry.backend.dto.UserResponse;
+import com.nocountry.backend.dto.users.UserResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
