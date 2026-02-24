@@ -1,9 +1,11 @@
 package com.nocountry.backend.service;
 
+import com.nocountry.backend.dto.video.VideoOutput;
 import com.nocountry.backend.dto.video.VideoOutputResults;
 import com.nocountry.backend.model.VideoIn;
 import com.nocountry.backend.model.VideoOut;
 import com.nocountry.backend.model.VideoState;
+import com.nocountry.backend.repository.IUserRepository;
 import com.nocountry.backend.repository.IVideoInRepository;
 import com.nocountry.backend.repository.IVideoOutRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -25,9 +28,11 @@ public class RedisStreamListener implements StreamListener<String, MapRecord<Str
     private final StringRedisTemplate stringRedisTemplate;
     private final IVideoOutRepository videoOutRepository;
     private final IVideoInRepository videoInRepository;
+    private final IUserRepository userRepository;
     private final RedisStreamInitializer redisStreamInitializer;
     private final ObjectMapper objectMapper;
 
+    @Transactional
     @Override
     public void onMessage(MapRecord<String, Object, Object> message) {
         try {
@@ -39,8 +44,7 @@ public class RedisStreamListener implements StreamListener<String, MapRecord<Str
             }
             VideoOutputResults videoOutputResults = objectMapper.convertValue(payloadObject, VideoOutputResults.class);
 
-
-            log.info("📥 Resultado procesado recibido:");
+            log.info("Resultado procesado recibido:");
             log.info("   Job ID: {}", videoOutputResults.idJob());
             log.info("   Estado: {}", videoOutputResults.state());
             VideoIn videoIn = videoInRepository.findById(Long.parseLong(videoOutputResults.idJob())).orElseThrow();
@@ -55,12 +59,23 @@ public class RedisStreamListener implements StreamListener<String, MapRecord<Str
                                 videoOutput.videoSizeBytes())
                 ).toList();
                 videoOutRepository.saveAll(videoOuts);
-                videoIn.setVideoState(VideoState.FINISHED);
+                videoIn.setVideoState(VideoState.COMPLETED);
                 log.info("   Archivos generados: {}", videoOutputResults.videos().size());
             }else {
                 videoIn.setVideoState(VideoState.FAILED);
             }
             videoInRepository.save(videoIn);
+
+            long totalSize = videoOutputResults.videos()
+                    .stream()
+                    .mapToLong(VideoOutput::videoSizeBytes)
+                    .sum();
+
+            userRepository.incrementFolderSize(
+                    videoIn.getUser().getId(),
+                    totalSize
+            );
+
             acknowledgeMessage(message);
             deleteMessage(message);
 

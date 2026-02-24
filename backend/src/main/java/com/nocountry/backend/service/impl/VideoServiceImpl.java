@@ -8,6 +8,7 @@ import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoIn;
 import com.nocountry.backend.model.VideoOut;
 import com.nocountry.backend.model.VideoState;
+import com.nocountry.backend.repository.IUserRepository;
 import com.nocountry.backend.repository.IVideoInRepository;
 import com.nocountry.backend.service.IVideoOutService;
 import com.nocountry.backend.service.IVideoService;
@@ -42,30 +43,50 @@ public class VideoServiceImpl implements IVideoService {
     private final IVideoOutService videoOutService;
     private final IVideoInRepository videoInRepository;
     private final IVideoStorage videoStore;
+    private final IUserRepository userRepository;
     private final RedisStreamPublisher redisStreamPublisher;
     private final ObjectMapper objectMapper;
 
+    @Transactional
     @Override
-    public JobState processVideo(MultipartFile multipartFile, InstructionsVideo instructionsVideo, User user) {
+    public JobState processVideo(
+            MultipartFile multipartFile,
+            InstructionsVideo instructionsVideo,
+            User user) {
+
         String videoPath = videoStore.saveVideo(multipartFile, user);
+
         VideoIn videoIn = new VideoIn();
         videoIn.setUser(user);
         videoIn.setPath(videoPath);
         videoIn.setName(multipartFile.getOriginalFilename());
-        videoIn.setVideoInstructions(objectMapper.writeValueAsString(instructionsVideo));
-        videoIn.setVideoState(VideoState.START);
+        videoIn.setVideoInstructions(
+                objectMapper.writeValueAsString(instructionsVideo));
+        videoIn.setVideoState(VideoState.UPLOADED);
         videoIn.setVideoSize(multipartFile.getSize());
 
         VideoIn videoInSaved = videoInRepository.save(videoIn);
+        userRepository.incrementFolderSize(
+                user.getId(),
+                multipartFile.getSize()
+        );
 
-        VideoJob videoJob = new VideoJob(videoIn.getId().toString(), videoPath, instructionsVideo, LocalDateTime.now());
+        VideoJob videoJob = new VideoJob(
+                videoInSaved.getId().toString(),
+                videoPath,
+                instructionsVideo,
+                LocalDateTime.now()
+        );
 
         redisStreamPublisher.publishJob(videoJob);
 
         videoInSaved.setVideoState(VideoState.PROCESSING);
 
-        videoInRepository.save(videoInSaved);
-        return new JobState(videoIn.getId(), videoIn.getVideoState(), null);
+        return new JobState(
+                videoInSaved.getId(),
+                videoInSaved.getVideoState(),
+                null
+        );
     }
 
     @Override
@@ -74,7 +95,7 @@ public class VideoServiceImpl implements IVideoService {
         VideoIn videoIn = videoInRepository
                 .findByIdAndUserIdAndDeletedFalse(idJob, user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Video not found"));
-        if (videoIn.getVideoState() == VideoState.FINISHED) {
+        if (videoIn.getVideoState() == VideoState.COMPLETED) {
             return new JobState(idJob,
                     videoIn.getVideoState(),
                     videoIn.getVideoOuts().stream().map(VideoOut::getId).toList());
