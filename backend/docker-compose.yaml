@@ -40,6 +40,8 @@ services:
       POSTGRES_PASSWORD: postgres123
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -101,10 +103,12 @@ volumes:
     driver: local
   video_data:
     driver: local
+  postgres_data:
+    driver: local
 
 networks:
   short_video_network:
     driver: bridge
 
 #docker-compose up -d
-#docker-compose down
+#docker-compose down -v
