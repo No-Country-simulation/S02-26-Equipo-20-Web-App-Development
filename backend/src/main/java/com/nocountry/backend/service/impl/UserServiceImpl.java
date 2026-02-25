@@ -6,6 +6,7 @@ import com.nocountry.backend.model.User;
 import com.nocountry.backend.repository.IUserRepository;
 import com.nocountry.backend.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     public UserResponse updateProfile(Long id, UpdateProfileRequest updateProfileRequest) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         user.setName(updateProfileRequest.name());
         user.setLastname(updateProfileRequest.lastname());

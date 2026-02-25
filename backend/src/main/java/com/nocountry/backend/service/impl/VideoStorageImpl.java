@@ -1,5 +1,6 @@
 package com.nocountry.backend.service.impl;
 
+import com.nocountry.backend.exception.FolderException;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.service.IVideoStorage;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,7 @@ public class VideoStorageImpl implements IVideoStorage {
 
         } catch (IOException e) {
             log.error("Error al guardar el archivo: ", e);
-            throw new RuntimeException("No se pudo escribir en el disco.");
+            throw new FolderException("No se pudo escribir en el disco.");
         }
     }
 
@@ -93,7 +94,7 @@ public class VideoStorageImpl implements IVideoStorage {
 
         } catch (IOException e) {
             log.error("Error calculando tamaño del directorio del usuario", e);
-            throw new RuntimeException("No se pudo calcular el tamaño del folder.");
+            throw new FolderException("No se pudo calcular el tamaño del folder.");
         }
     }
 }
