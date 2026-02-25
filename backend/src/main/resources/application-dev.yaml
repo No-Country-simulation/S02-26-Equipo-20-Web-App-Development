@@ -35,3 +35,12 @@ video:
 jwt:
   secret: aSsatDQAOigsYH8Vf8eZASH1WG5ESHRmfWjF8yV0pT4=
   expiration: 36000000
+
+#SpringDocs config
+springdoc:
+  swagger-ui:
+    # Habilita Swagger UI en desarrollo
+    enabled: true
+  api-docs:
+    # Habilita el endpoint OpenAPI
+    enabled: true

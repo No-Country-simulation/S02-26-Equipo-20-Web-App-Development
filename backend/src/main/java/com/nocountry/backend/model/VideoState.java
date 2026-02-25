@@ -1,9 +1,9 @@
 package com.nocountry.backend.model;
 
 public enum VideoState {
-    START,
+    UPLOADED,
     PROCESSING,
     FAILED,
-    FINISHED
+    COMPLETED
 }
 

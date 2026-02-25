@@ -1,6 +1,6 @@
 package com.nocountry.backend.service;
 
-import com.nocountry.backend.dto.UserResponse;
+import com.nocountry.backend.dto.users.UserResponse;
 import com.nocountry.backend.dto.auth.AuthRequest;
 import com.nocountry.backend.dto.auth.AuthResponse;
 import com.nocountry.backend.dto.auth.RegisterRequest;
@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+
+import static com.nocountry.backend.mapper.UserMapper.mapToUserResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -66,15 +68,6 @@ public class AuthService {
         user.setUserFolderName(generateUserFolderName());
         user.setUserFolderSize(0L);
         return user;
-    }
-
-    private UserResponse mapToUserResponse(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getLastname(),
-                user.getEmail(),
-                user.getUserFolderSize());
     }
 
     public UserResponse me(Authentication authentication) {

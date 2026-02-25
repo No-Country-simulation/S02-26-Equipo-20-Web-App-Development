@@ -37,7 +37,7 @@ public class VideoIn {
     private String name;
 
     @Column(name = "duration")
-    private Long duration;
+    private Integer duration;
 
     @Column(name = "video_size", nullable = false)
     private Long videoSize;

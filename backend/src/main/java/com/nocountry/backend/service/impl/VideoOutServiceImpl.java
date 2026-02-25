@@ -1,5 +1,6 @@
 package com.nocountry.backend.service.impl;
 
+import com.nocountry.backend.exception.VideoException;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoOut;
 import com.nocountry.backend.repository.IVideoOutRepository;
@@ -31,7 +32,7 @@ public class VideoOutServiceImpl implements IVideoOutService {
                         user.getId()
                 )
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Video output not found"));
+                        new VideoException("Video output not found"));
 
         Path videoPath = Paths.get(videoOut.getPath())
                 .toAbsolutePath()
