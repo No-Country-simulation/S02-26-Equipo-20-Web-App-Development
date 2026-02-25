@@ -2,7 +2,7 @@ spring:
   application:
     name: backend
   profiles:
-    active: docker
+    active: dev
   #JPA Configuration
   jpa:
     open-in-view: false
