@@ -35,13 +35,14 @@ api.interceptors.response.use(
             window.location.href = '/login';
           }
           break;
-        case 403:
+        case 403: {
           // Si es el chequeo inicial de sesión, ignorar silenciosamente
           const isRegister = error.config?.url?.includes('/auth/register');
           if (!isAuthCheck && !isRegister && !window.location.pathname.includes('/login')) {
             window.location.href = '/login';
           }
           break;
+        }
         case 404:
           console.error('Recurso no encontrado');
           break;

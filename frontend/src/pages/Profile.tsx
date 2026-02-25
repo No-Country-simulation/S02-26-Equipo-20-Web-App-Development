@@ -1,9 +1,40 @@
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
+import { useUpdateProfile } from '@/hooks/useUpdateProfile';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { profileSchema, type ProfileFormData } from '@/utils/validation.schemas';
 
 export default function Profile() {
   const { user, logout } = useAuth();
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: user?.name ?? '',
+      lastname: user?.lastname ?? '',
+    },
+  });
+
+  // Sincronizar el form si el user cambia en el contexto
+  useEffect(() => {
+    if (user) {
+      reset({ name: user.name, lastname: user.lastname });
+    }
+  }, [user, reset]);
+
+  const onSubmit = (data: ProfileFormData) => {
+    updateProfile(data);
+  };
 
   const handleLogout = async () => {
     try {
@@ -38,12 +69,10 @@ export default function Profile() {
                     {user?.name} {user?.lastname}
                   </p>
                 </div>
-
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
                   <p className="text-gray-900">{user?.email}</p>
                 </div>
-
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     ID de Usuario
@@ -54,32 +83,40 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Placeholder para Edición */}
+          {/* Editar Perfil */}
           <Card className="mb-6">
             <CardHeader>
               <h2 className="text-xl font-semibold text-gray-900">Editar Perfil</h2>
             </CardHeader>
             <CardContent>
-              <div className="py-8 text-center">
-                <svg
-                  className="mx-auto mb-4 h-16 w-16 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                <p className="mb-4 text-gray-600">
-                  La funcionalidad de edición estará disponible próximamente
-                </p>
-                <Button variant="outline" disabled>
-                  Editar Perfil (Próximamente)
-                </Button>
-              </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <Input
+                  label="Nombre"
+                  placeholder="Juan"
+                  error={errors.name?.message}
+                  disabled={isPending}
+                  {...register('name')}
+                />
+                <Input
+                  label="Apellido"
+                  placeholder="Pérez"
+                  error={errors.lastname?.message}
+                  disabled={isPending}
+                  {...register('lastname')}
+                />
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isPending || !isDirty}
+                    onClick={() => reset()}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" variant="primary" disabled={isPending || !isDirty}>
+                    {isPending ? 'Guardando...' : 'Guardar cambios'}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
 
@@ -105,7 +142,6 @@ export default function Profile() {
                   </svg>
                   Cambiar Contraseña (Próximamente)
                 </Button>
-
                 <Button variant="danger" className="w-full justify-start" onClick={handleLogout}>
                   <svg
                     className="mr-2 h-5 w-5"

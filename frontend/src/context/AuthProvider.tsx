@@ -14,6 +14,7 @@ export interface AuthContextType {
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 interface AuthProviderProps {
@@ -56,6 +57,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null);
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -63,6 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext value={value}>{children}</AuthContext>;
