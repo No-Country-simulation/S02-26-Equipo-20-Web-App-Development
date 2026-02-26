@@ -29,21 +29,3 @@ export function useLogin() {
     },
   });
 }
-
-/**
- * Uso del hook:
- *
- * function LoginForm() {
- *   const { mutate: login, isPending } = useLogin();
- *
- *   const onSubmit = (data: LoginFormData) => {
- *     login(data);
- *   };
- *
- *   return (
- *     <form onSubmit={handleSubmit(onSubmit)}>
- *       <Button isLoading={isPending}>Login</Button>
- *     </form>
- *   );
- * }
- */

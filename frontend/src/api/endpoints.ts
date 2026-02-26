@@ -5,8 +5,12 @@ export const API_ENDPOINTS = {
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
   },
+  USERS: {
+    UPDATE_PROFILE: '/users/me',
+  },
   VIDEOS: {
     UPLOAD: '/video/process-video',
+    ALL: '/video/all',
     STATUS: (idJob: string) => `/video/job-status/${idJob}`,
     STREAM: (videoOutputId: string) => `/video/output/${videoOutputId}`,
   },

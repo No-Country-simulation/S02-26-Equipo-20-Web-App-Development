@@ -19,6 +19,7 @@ export default function Register() {
   });
 
   const onSubmit = (data: RegisterFormData) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _cp, ...registerData } = data;
     registerUser(registerData);
   };
@@ -39,7 +40,7 @@ export default function Register() {
               placeholder="Juan"
               error={errors.name?.message}
               disabled={isPending}
-              autoComplete="true"
+              autoComplete="given-name"
               {...register('name')}
             />
             <Input
@@ -48,6 +49,7 @@ export default function Register() {
               placeholder="Pérez"
               error={errors.lastname?.message}
               disabled={isPending}
+              autoComplete="family-name"
               {...register('lastname')}
             />
             <Input
@@ -56,7 +58,7 @@ export default function Register() {
               placeholder="tu@email.com"
               error={errors.email?.message}
               disabled={isPending}
-              autoComplete="true"
+              autoComplete="on"
               {...register('email')}
             />
             <Input

@@ -45,7 +45,22 @@ export const registerSchema = z
   });
 
 /**
+ * Schema de validación para edición de perfil
+ */
+export const profileSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'El nombre es obligatorio')
+    .max(50, 'El nombre no puede tener más de 50 caracteres'),
+  lastname: z
+    .string()
+    .min(1, 'El apellido es obligatorio')
+    .max(50, 'El apellido no puede tener más de 50 caracteres'),
+});
+
+/**
  * Tipos inferidos de los schemas (para TypeScript)
  */
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ProfileFormData = z.infer<typeof profileSchema>;

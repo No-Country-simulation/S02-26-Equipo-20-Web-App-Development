@@ -38,7 +38,7 @@ export default function Login() {
               placeholder="tu@email.com"
               error={errors.email?.message}
               disabled={isPending}
-              autoComplete="true"
+              autoComplete="on"
               {...register('email')}
             />
             <Input
