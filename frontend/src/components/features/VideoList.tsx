@@ -1,21 +1,16 @@
-import type { Video } from '@/types/video.types';
+import type { VideoInWithVideoOutIds } from '@/types/video.types';
 import { VideoCard } from './VideoCard';
 import { EmptyVideoState } from './EmptyVideoState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface VideoListProps {
-  videos: Video[];
+  videos: VideoInWithVideoOutIds[];
   isLoading?: boolean;
-  onDelete?: (videoId: string) => void;
   emptyMessage?: string;
+  onUpload?: () => void;
 }
 
-export function VideoList({
-  videos,
-  isLoading = false,
-  onDelete,
-  emptyMessage = 'Aún no has subido ningún video',
-}: VideoListProps) {
+export function VideoList({ videos, isLoading = false, emptyMessage, onUpload }: VideoListProps) {
   if (isLoading) {
     return (
       <div className="flex min-h-100 items-center justify-center">
@@ -25,13 +20,13 @@ export function VideoList({
   }
 
   if (videos.length === 0) {
-    return <EmptyVideoState message={emptyMessage} />;
+    return <EmptyVideoState message={emptyMessage} onUpload={onUpload} />;
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-3">
       {videos.map((video) => (
-        <VideoCard key={video.id} video={video} onDelete={onDelete} />
+        <VideoCard key={video.videoInId} video={video} />
       ))}
     </div>
   );

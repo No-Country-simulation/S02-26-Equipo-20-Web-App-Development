@@ -1,128 +1,73 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useVideos } from '@/hooks/useVideos';
+import { useUploadVideo } from '@/hooks/useUploadVideo';
+import { useJobPolling } from '@/hooks/useJobPolling';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { VideoUpload } from '@/components/features/VideoUpload';
 import { VideoList } from '@/components/features/VideoList';
-import { fetchMockVideos, uploadMockVideo } from '@/mocks/videos.mock';
-import type { Video } from '@/types/video.types';
+import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
+import type { InstructionsVideo, JobState } from '@/types/video.types';
 
-type TabType = 'all' | 'processing' | 'completed';
+// Instrucciones por defecto para el MVP
+const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
+  withSceneDetector: false,
+  isFollowFace: false,
+  minSceneDuration: 5,
+  maxSceneDuration: 60,
+  numberOfSegments: 3,
+  vectorTimes: undefined,
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const queryClient = useQueryClient();
+  const { data: videos = [], isLoading } = useVideos();
+  const { mutate: uploadVideo, isPending: isUploading } = useUploadVideo();
+
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
-  // Cargar videos al montar
-  useEffect(() => {
-    loadVideos();
-  }, []);
-
-  const loadVideos = async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchMockVideos();
-      setVideos(data);
-    } catch (error) {
-      console.log(error);
-      toast.error('Error al cargar videos');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpload = async (file: File) => {
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const newVideo = await uploadMockVideo(file, (progress) => {
-        setUploadProgress(progress);
-      });
-
-      setVideos((prev) => [newVideo, ...prev]);
-      toast.success('¡Video subido exitosamente!');
-      setShowUploadModal(false);
-
-      // Simular cambio de estado a processing después de 2s
-      setTimeout(() => {
-        setVideos((prev) =>
-          prev.map((v) =>
-            v.id === newVideo.id ? { ...v, status: 'processing', processingProgress: 0 } : v,
-          ),
-        );
-
-        // Simular progreso de procesamiento
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 10;
-          if (progress > 100) {
-            clearInterval(interval);
-            // Cambiar a completed
-            setVideos((prev) =>
-              prev.map((v) =>
-                v.id === newVideo.id
-                  ? {
-                      ...v,
-                      status: 'completed',
-                      processingProgress: 100,
-                      shorts: [
-                        {
-                          id: `s-${newVideo.id}-1`,
-                          videoId: newVideo.id,
-                          url: newVideo.originalUrl,
-                          thumbnailUrl: newVideo.thumbnailUrl,
-                          duration: 15,
-                          title: 'Short generado 1',
-                          createdAt: new Date().toISOString(),
-                        },
-                      ],
-                    }
-                  : v,
-              ),
-            );
-            toast.success('¡Video procesado! Tus shorts están listos');
-          } else {
-            setVideos((prev) =>
-              prev.map((v) => (v.id === newVideo.id ? { ...v, processingProgress: progress } : v)),
-            );
-          }
-        }, 500);
-      }, 2000);
-    } catch (error) {
-      console.log(error);
-      toast.error('Error al subir video');
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleDelete = (videoId: string) => {
-    setVideos((prev) => prev.filter((v) => v.id !== videoId));
-    toast.success('Video eliminado');
-  };
-
-  // Filtrar videos según tab
-  const filteredVideos = videos.filter((video) => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'processing')
-      return video.status === 'processing' || video.status === 'uploading';
-    if (activeTab === 'completed') return video.status === 'completed';
-    return true;
+  // Polling del job activo
+  useJobPolling({
+    idJob: activeJobId,
+    enabled: activeJobId !== null,
+    onFinished: (_state: JobState) => {
+      setActiveJobId(null);
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
+      toast.success('¡Shorts listos!');
+    },
+    onFailed: (_state: JobState) => {
+      setActiveJobId(null);
+      toast.error('El procesamiento falló');
+    },
   });
+
+  const handleUpload = (file: File) => {
+    uploadVideo(
+      {
+        file,
+        instructions: DEFAULT_INSTRUCTIONS,
+        onProgress: setUploadProgress,
+      },
+      {
+        onSuccess: (jobState) => {
+          setActiveJobId(jobState.idJob);
+          setShowUploadModal(false);
+          setUploadProgress(0);
+        },
+      },
+    );
+  };
 
   // Stats
   const stats = {
-    total: videos.length,
-    processing: videos.filter((v) => v.status === 'processing' || v.status === 'uploading').length,
-    completed: videos.filter((v) => v.status === 'completed').length,
-    totalShorts: videos.reduce((acc, v) => acc + v.shorts.length, 0),
+    totalVideos: videos.length,
+    totalShorts: videos.reduce((acc, v) => acc + v.videoOutIds.length, 0),
   };
 
   return (
@@ -130,12 +75,35 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">¡Hola, {user?.name}! 👋</h1>
-          <p className="text-gray-600">Gestiona tus videos y shorts aquí</p>
+          <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row">
+            <div className="w-full">
+              <h1 className="mb-1 text-2xl font-bold text-gray-900 sm:text-3xl">
+                ¡Hola, {user?.name}! 👋
+              </h1>
+              <p className="text-sm text-gray-600 sm:text-base">
+                Gestiona tus videos y shorts aquí
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => setShowUploadModal(true)}
+              disabled={isUploading}
+              className="w-full shrink-0 gap-2 sm:w-fit">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>Subir video</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Stats */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-gray-200 bg-white p-6">
             <div className="flex items-center gap-4">
               <div className="rounded-lg bg-blue-100 p-3">
@@ -153,8 +121,8 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total videos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm font-medium text-gray-600">Videos subidos</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalVideos}</p>
               </div>
             </div>
           </div>
@@ -181,68 +149,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
-          <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-green-100 p-3">
-                <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completados</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-yellow-100 p-3">
-                <svg
-                  className="h-6 w-6 animate-spin text-yellow-600"
-                  fill="none"
-                  viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Procesando</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.processing}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Upload Button */}
-        <div className="mb-6">
-          <Button variant="primary" onClick={() => setShowUploadModal(true)} className="gap-2">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Subir nuevo video
-          </Button>
         </div>
 
         {/* Upload Modal */}
@@ -253,7 +159,8 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-gray-900">Subir video</h2>
                 <button
                   onClick={() => setShowUploadModal(false)}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                  disabled={isUploading}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -273,30 +180,42 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex gap-6">
-            {[
-              { id: 'all', label: 'Todos', count: stats.total },
-              { id: 'processing', label: 'Procesando', count: stats.processing },
-              { id: 'completed', label: 'Completados', count: stats.completed },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                } `}>
-                {tab.label} ({tab.count})
-              </button>
-            ))}
-          </nav>
-        </div>
+        {/* Banner procesamiento activo */}
+        {activeJobId !== null && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+            <svg
+              className="h-5 w-5 shrink-0 animate-spin text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <div>
+              <p className="font-medium text-blue-900">Procesando tu video</p>
+              <p className="text-sm text-blue-700">
+                Esto puede tardar unos minutos. Te avisaremos cuando esté listo.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Video List */}
-        <VideoList videos={filteredVideos} isLoading={isLoading} onDelete={handleDelete} />
+        <VideoList
+          videos={videos}
+          isLoading={isLoading}
+          onUpload={() => setShowUploadModal(true)}
+        />
       </div>
     </div>
   );
