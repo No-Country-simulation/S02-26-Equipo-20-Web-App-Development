@@ -18,27 +18,24 @@ export const api = axios.create({
 
 // Response interceptor - Manejar errores globalmente
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error: AxiosError) => {
     // Manejar errores comunes
     if (error.response) {
-      const isAuthCheck = error.config?.url?.includes('/auth/me');
+      const url = error.config?.url ?? '';
+      const isAuthCheck = url.includes('/auth/me');
+      const isRegister = url.includes('/auth/register');
+      const isOnAuthPage =
+        window.location.pathname.includes('/login') ||
+        window.location.pathname.includes('/register');
       switch (error.response.status) {
         case 401:
-          // Solo redirigir si no estamos ya en login/register
-          if (
-            !window.location.pathname.includes('/login') &&
-            !window.location.pathname.includes('/register')
-          ) {
+          if (!isAuthCheck && !isOnAuthPage) {
             window.location.href = '/login';
           }
           break;
         case 403: {
-          // Si es el chequeo inicial de sesión, ignorar silenciosamente
-          const isRegister = error.config?.url?.includes('/auth/register');
-          if (!isAuthCheck && !isRegister && !window.location.pathname.includes('/login')) {
+          if (!isAuthCheck && !isRegister && !isOnAuthPage) {
             window.location.href = '/login';
           }
           break;

@@ -60,26 +60,22 @@ export default function Profile() {
               <h2 className="text-xl font-semibold text-gray-900">Información Personal</h2>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <dl className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Nombre Completo
-                  </label>
-                  <p className="text-gray-900">
+                  <dt className="mb-1 text-sm font-medium text-gray-700">Nombre Completo</dt>
+                  <dd className="text-gray-900">
                     {user?.name} {user?.lastname}
-                  </p>
+                  </dd>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-gray-900">{user?.email}</p>
+                  <dt className="mb-1 text-sm font-medium text-gray-700">Email</dt>
+                  <dd className="text-gray-900">{user?.email}</dd>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    ID de Usuario
-                  </label>
-                  <p className="text-sm text-gray-500">#{user?.id}</p>
+                  <dt className="mb-1 text-sm font-medium text-gray-700">ID de Usuario</dt>
+                  <dd className="text-sm text-gray-500">#{user?.id}</dd>
                 </div>
-              </div>
+              </dl>
             </CardContent>
           </Card>
 
@@ -95,6 +91,7 @@ export default function Profile() {
                   placeholder="Juan"
                   error={errors.name?.message}
                   disabled={isPending}
+                  autoComplete="given-name"
                   {...register('name')}
                 />
                 <Input
@@ -102,6 +99,7 @@ export default function Profile() {
                   placeholder="Pérez"
                   error={errors.lastname?.message}
                   disabled={isPending}
+                  autoComplete="family-name"
                   {...register('lastname')}
                 />
                 <div className="flex justify-end gap-3 pt-2">
@@ -126,7 +124,7 @@ export default function Profile() {
               <h2 className="text-xl font-semibold text-gray-900">Configuración de Cuenta</h2>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="flex w-full flex-col gap-y-4">
                 <Button variant="outline" className="w-full justify-start" disabled>
                   <svg
                     className="mr-2 h-5 w-5"
@@ -142,7 +140,7 @@ export default function Profile() {
                   </svg>
                   Cambiar Contraseña (Próximamente)
                 </Button>
-                <Button variant="danger" className="w-full justify-start" onClick={handleLogout}>
+                <Button variant="danger" className="w-full justify-center" onClick={handleLogout}>
                   <svg
                     className="mr-2 h-5 w-5"
                     fill="none"
