@@ -6,6 +6,7 @@ import com.nocountry.backend.service.IVideoStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,6 +22,9 @@ public class VideoStorageImpl implements IVideoStorage {
     @Value("${video.storage.path}")
     private String storagePath;
 
+    @Value("${video.storage.max-user-size}")
+    private DataSize maxUserSize;
+
     @Override
     public String saveVideo(MultipartFile multipartFile, User user) {
 
@@ -35,6 +39,19 @@ public class VideoStorageImpl implements IVideoStorage {
 
             if (!Files.exists(userFolder)) {
                 Files.createDirectories(userFolder);
+            }
+
+            long currentSize = getFolderSizeBytes(user);
+
+            long newFileSize = multipartFile.getSize();
+
+            long maxSizeBytes = maxUserSize.toBytes();
+
+            if (currentSize + newFileSize > maxSizeBytes) {
+                throw new FolderException(
+                        "Has alcanzado el límite máximo de almacenamiento permitido ("
+                                + maxUserSize.toGigabytes() + " GB)."
+                );
             }
 
             String originalFilename = multipartFile.getOriginalFilename();
