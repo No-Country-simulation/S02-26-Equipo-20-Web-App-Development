@@ -22,6 +22,13 @@ const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   vectorTimes: undefined,
 };
 
+function formatStorageSize(bytes: number): string {
+  if (bytes === 0) return '0 MB';
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -103,7 +110,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2">
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-gray-200 bg-white p-6">
             <div className="flex items-center gap-4">
               <div className="rounded-lg bg-blue-100 p-3">
@@ -121,8 +128,8 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Videos subidos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalVideos}</p>
+                <p className="text-xs font-medium text-gray-600 md:text-sm">Videos subidos</p>
+                <p className="text-xl font-bold text-gray-900 md:text-2xl">{stats.totalVideos}</p>
               </div>
             </div>
           </div>
@@ -144,8 +151,33 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Shorts generados</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalShorts}</p>
+                <p className="text-xs font-medium text-gray-600 md:text-sm">Shorts generados</p>
+                <p className="text-xl font-bold text-gray-900 md:text-2xl">{stats.totalShorts}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-4 sm:col-span-1 sm:p-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-orange-100 p-2 sm:p-3">
+                <svg
+                  className="h-5 w-5 text-orange-600 sm:h-6 sm:w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582 4 8 4s8 1.79 8 4"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-600 md:text-sm">Almacenamiento</p>
+                <p className="text-xl font-bold text-gray-900 md:text-2xl">
+                  {formatStorageSize(user?.folderSizeBytes ?? 0)}
+                </p>
               </div>
             </div>
           </div>
