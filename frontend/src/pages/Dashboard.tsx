@@ -11,6 +11,7 @@ import { VideoList } from '@/components/features/VideoList';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import type { InstructionsVideo, JobState } from '@/types/video.types';
+import { VideoProcessingOptions } from '@/components/features/VideoProcessingOptions';
 
 // Instrucciones por defecto para el MVP
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
@@ -35,9 +36,12 @@ export default function Dashboard() {
   const { data: videos = [], isLoading } = useVideos();
   const { mutate: uploadVideo, isPending: isUploading } = useUploadVideo();
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadStep, setUploadStep] = useState<'file' | 'options'>('file');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
 
   // Polling del job activo
   useJobPolling({
@@ -54,21 +58,38 @@ export default function Dashboard() {
     },
   });
 
-  const handleUpload = (file: File) => {
+  const handleFileSelected = (file: File) => {
+    setSelectedFile(file);
+    setUploadStep('options');
+  };
+
+  const handleConfirmUpload = () => {
+    if (!selectedFile) return;
     uploadVideo(
       {
-        file,
-        instructions: DEFAULT_INSTRUCTIONS,
+        file: selectedFile,
+        instructions,
         onProgress: setUploadProgress,
       },
       {
         onSuccess: (jobState) => {
           setActiveJobId(jobState.idJob);
           setShowUploadModal(false);
+          setUploadStep('file');
+          setSelectedFile(null);
+          setInstructions(DEFAULT_INSTRUCTIONS);
           setUploadProgress(0);
         },
       },
     );
+  };
+
+  const handleCloseModal = () => {
+    if (isUploading) return;
+    setShowUploadModal(false);
+    setUploadStep('file');
+    setSelectedFile(null);
+    setInstructions(DEFAULT_INSTRUCTIONS);
   };
 
   // Stats
@@ -186,11 +207,40 @@ export default function Dashboard() {
         {/* Upload Modal */}
         {showUploadModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-2xl rounded-2xl bg-white p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Subir video</h2>
+            <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6">
+              {/* Header */}
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {uploadStep === 'options' && (
+                    <button
+                      onClick={() => setUploadStep('file')}
+                      disabled={isUploading}
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {uploadStep === 'file' ? 'Subir video' : 'Opciones de procesamiento'}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Paso {uploadStep === 'file' ? '1' : '2'} de 2
+                    </p>
+                  </div>
+                </div>
                 <button
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={handleCloseModal}
                   disabled={isUploading}
                   className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,11 +253,78 @@ export default function Dashboard() {
                   </svg>
                 </button>
               </div>
-              <VideoUpload
-                onUpload={handleUpload}
-                isUploading={isUploading}
-                uploadProgress={uploadProgress}
-              />
+
+              {/* Indicador de pasos */}
+              <div className="mb-6 flex items-center gap-2">
+                <div className="h-1.5 flex-1 rounded-full bg-blue-500" />
+                <div
+                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                    uploadStep === 'options' ? 'bg-blue-500' : 'bg-gray-200'
+                  }`}
+                />
+              </div>
+
+              {/* Contenido */}
+              {uploadStep === 'file' ? (
+                <VideoUpload onUpload={handleFileSelected} isUploading={false} uploadProgress={0} />
+              ) : (
+                <div className="space-y-6">
+                  {/* Archivo seleccionado */}
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <svg
+                      className="h-5 w-5 shrink-0 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="min-w-0 truncate text-sm font-medium text-gray-700">
+                      {selectedFile?.name}
+                    </span>
+                  </div>
+
+                  <VideoProcessingOptions value={instructions} onChange={setInstructions} />
+
+                  {/* Botón confirmar */}
+                  {isUploading ? (
+                    <div className="space-y-2">
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-center text-sm text-gray-600">
+                        Subiendo... {uploadProgress}%
+                      </p>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      onClick={handleConfirmUpload}
+                      className="w-full gap-2">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      Generar shorts
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -110,14 +110,14 @@ export function VideoUpload({
         </div>
 
         {/* Content */}
-        <div className="relative px-6 py-16 sm:px-12 sm:py-24">
+        <div className="relative px-6 py-10 sm:px-12 sm:py-12">
           <div className="mx-auto max-w-md text-center">
             {/* Icon */}
             <div className="mb-6 flex justify-center">
               <div
-                className={`rounded-full p-6 transition-all duration-300 ${isDragging ? 'scale-110 bg-blue-100' : 'bg-gray-200'} `}>
+                className={`rounded-full p-4 transition-all duration-300 ${isDragging ? 'scale-110 bg-blue-100' : 'bg-gray-200'} `}>
                 <svg
-                  className={`h-12 w-12 transition-colors ${isDragging ? 'text-blue-600' : 'text-gray-600'}`}
+                  className={`h-8 w-8 transition-colors md:h-8 md:w-8 ${isDragging ? 'text-blue-600' : 'text-gray-600'}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
