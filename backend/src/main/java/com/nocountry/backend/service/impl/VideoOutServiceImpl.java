@@ -48,4 +48,17 @@ public class VideoOutServiceImpl implements IVideoOutService {
         }
         return videoPath;
     }
+
+    @Override
+    public VideoOut getVideoOutByIdAndUserId(Long videoOutputId, Long id) {
+        return videoOutRepository
+                .findByIdAndVideoInUserIdAndDeletedFalse(videoOutputId,id)
+                .orElseThrow(() ->
+                        new VideoException("Video output not found"));
+    }
+
+    @Override
+    public void saveVideo(VideoOut videoOut) {
+        videoOutRepository.save(videoOut);
+    }
 }

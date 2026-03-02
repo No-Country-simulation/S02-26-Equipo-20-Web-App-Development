@@ -114,4 +114,75 @@ public class VideoStorageImpl implements IVideoStorage {
             throw new FolderException("No se pudo calcular el tamaño del folder.");
         }
     }
+
+    @Override
+    public void deleteVideoIn(String path) {
+
+        try {
+
+            Path basePath = Paths.get(storagePath)
+                    .toAbsolutePath()
+                    .normalize();
+
+            Path filePath = Paths.get(path)
+                    .toAbsolutePath()
+                    .normalize();
+
+            if (!filePath.startsWith(basePath)) {
+                throw new SecurityException("Ruta inválida fuera del storage permitido");
+            }
+
+            Files.deleteIfExists(filePath);
+
+            log.info("Video original eliminado: {}", filePath);
+
+        } catch (IOException e) {
+            log.error("Error eliminando video original: {}", path, e);
+            throw new FolderException("No se pudo eliminar el video original.");
+        }
+    }
+
+    @Override
+    public void deleteVideoOut(String path) {
+
+        try {
+
+            Path basePath = Paths.get(storagePath)
+                    .toAbsolutePath()
+                    .normalize();
+
+            Path filePath = Paths.get(path)
+                    .toAbsolutePath()
+                    .normalize();
+
+            if (!filePath.startsWith(basePath)) {
+                throw new SecurityException("Ruta inválida fuera del storage permitido");
+            }
+
+            Files.deleteIfExists(filePath);
+
+            log.info("Video procesado eliminado: {}", filePath);
+
+            Path parentFolder = filePath.getParent();
+
+            if (parentFolder != null
+                    && Files.isDirectory(parentFolder)
+                    && parentFolder.startsWith(basePath)) {
+
+                try (var files = Files.list(parentFolder)) {
+
+                    boolean isEmpty = files.findAny().isEmpty();
+
+                    if (isEmpty) {
+                        Files.delete(parentFolder);
+                        log.info("Carpeta de resultados eliminada (vacía): {}", parentFolder);
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            log.error("Error eliminando video procesado: {}", path, e);
+            throw new FolderException("No se pudo eliminar el video procesado.");
+        }
+    }
 }
