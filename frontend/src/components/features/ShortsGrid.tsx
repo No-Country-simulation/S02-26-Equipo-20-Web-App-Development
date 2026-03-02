@@ -1,14 +1,11 @@
-import type { Short } from '@/types/video.types';
 import { ShortCard } from './ShortCard';
 
 interface ShortsGridProps {
-  shorts: Short[];
-  onDownload?: (shortId: string) => void;
-  onPreview?: (shortId: string) => void;
+  videoOutIds: number[];
 }
 
-export function ShortsGrid({ shorts, onDownload, onPreview }: ShortsGridProps) {
-  if (shorts.length === 0) {
+export function ShortsGrid({ videoOutIds }: ShortsGridProps) {
+  if (videoOutIds.length === 0) {
     return (
       <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
         <div className="mx-auto max-w-sm">
@@ -39,22 +36,17 @@ export function ShortsGrid({ shorts, onDownload, onPreview }: ShortsGridProps) {
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Shorts generados ({shorts.length})
-          </h3>
-          <p className="text-sm text-gray-600">
-            Formato vertical 9:16 optimizado para redes sociales
-          </p>
-        </div>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Shorts generados ({videoOutIds.length})
+        </h3>
+        <p className="text-sm text-gray-600">
+          Formato vertical 9:16 optimizado para redes sociales
+        </p>
       </div>
-
-      {/* Grid */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {shorts.map((short) => (
-          <ShortCard key={short.id} short={short} onDownload={onDownload} onPreview={onPreview} />
+        {videoOutIds.map((id, index) => (
+          <ShortCard key={id} videoOutputId={id} index={index} />
         ))}
       </div>
     </div>
