@@ -37,7 +37,10 @@ export default function Dashboard() {
   const { mutate: uploadVideo, isPending: isUploading } = useUploadVideo();
 
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [activeJobId, setActiveJobId] = useState<number | null>(null);
+  const [activeJobId, setActiveJobId] = useState<number | null>(() => {
+    const stored = localStorage.getItem('activeJobId');
+    return stored ? Number(stored) : null;
+  });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadStep, setUploadStep] = useState<'file' | 'options'>('file');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -48,15 +51,24 @@ export default function Dashboard() {
     idJob: activeJobId,
     enabled: activeJobId !== null,
     onFinished: (_state: JobState) => {
-      setActiveJobId(null);
+      setActiveJob(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
       toast.success('¡Shorts listos!');
     },
     onFailed: (_state: JobState) => {
-      setActiveJobId(null);
+      setActiveJob(null);
       toast.error('El procesamiento falló');
     },
   });
+
+  const setActiveJob = (id: number | null) => {
+    setActiveJobId(id);
+    if (id === null) {
+      localStorage.removeItem('activeJobId');
+    } else {
+      localStorage.setItem('activeJobId', String(id));
+    }
+  };
 
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
@@ -73,7 +85,7 @@ export default function Dashboard() {
       },
       {
         onSuccess: (jobState) => {
-          setActiveJobId(jobState.idJob);
+          setActiveJob(jobState.idJob);
           setShowUploadModal(false);
           setUploadStep('file');
           setSelectedFile(null);

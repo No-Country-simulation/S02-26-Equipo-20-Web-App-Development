@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
-import api from '@/api/axios.config';
 import { videoService } from '@/api/services/video.service';
 import { toast } from 'sonner';
 
@@ -19,17 +18,7 @@ export function ShortCard({ videoOutputId, index }: ShortCardProps) {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await api.get(streamUrl, {
-        responseType: 'blob',
-        headers: { Range: 'bytes=0-' },
-      });
-      const blob = new Blob([response.data], { type: 'video/mp4' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `short-${videoOutputId}.mp4`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await videoService.downloadVideoOut(videoOutputId);
     } catch {
       toast.error('Error al descargar el short');
     } finally {
