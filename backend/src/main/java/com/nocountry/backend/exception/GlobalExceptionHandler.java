@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -58,6 +59,23 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(buildError("Unauthorized", "Authentication failed", request));
+    }
+
+    @ExceptionHandler(java.io.IOException.class)
+    public void handleIOException(HttpServletRequest request, IOException ex) {
+
+        String message = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+
+        if (message.contains("broken pipe") ||
+                message.contains("connection reset") ||
+                message.contains("anulado una conexión")) {
+
+            log.debug("Cliente cerró la conexión durante streaming: {}", ex.getMessage());
+            return;
+        }
+
+        log.error("IO error real: {}", ex.getMessage());
+        throw new RuntimeException(ex);
     }
 
     @ExceptionHandler(Exception.class)
