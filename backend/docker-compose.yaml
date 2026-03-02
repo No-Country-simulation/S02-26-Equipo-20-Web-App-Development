@@ -66,6 +66,7 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres123
       STORAGE_PATH: /video
+      STORAGE_MAX_USER_SIZE: 5GB
       JWT_SECRET: aSsatDQAOigsYH8Vf8eZASH1WG5ESHRmfWjF8yV0pT4=
       JWT_EXPIRATION: 36000000
     ports:

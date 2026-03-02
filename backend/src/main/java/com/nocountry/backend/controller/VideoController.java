@@ -18,11 +18,13 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,23 +40,22 @@ import java.util.List;
 public class VideoController implements IStandardApiResponses {
 
     private final IVideoService videoService;
+    private final ObjectMapper objectMapper;
 
-    @Operation(
-            summary = "Procesar video",
-            description = "Permite subir un archivo de video junto con instrucciones de procesamiento. " +
-                    "El procesamiento se ejecuta de forma asíncrona y devuelve el estado inicial del job.",
-            security = @SecurityRequirement(name = "cookieAuth")
+    @PostMapping(
+            value = "/process-video",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Video recibido y procesamiento iniciado")
-    })
-    @PostMapping(value = "/process-video", consumes = "multipart/form-data")
     public ResponseEntity<JobState> uploadVideo(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("instructions") @Valid InstructionsVideo instructions,
+            @RequestPart("instructions") String instructionsJson,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(videoService.processVideo(file, instructions, user));
+        InstructionsVideo instructions = objectMapper.readValue(instructionsJson, InstructionsVideo.class);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(videoService.processVideo(file, instructions, user));
     }
 
     @Operation(
