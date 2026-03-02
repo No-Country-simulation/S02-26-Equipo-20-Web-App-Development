@@ -14,14 +14,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,23 +40,37 @@ import java.util.List;
 public class VideoController implements IStandardApiResponses {
 
     private final IVideoService videoService;
+    private final ObjectMapper objectMapper;
 
-    @Operation(
-            summary = "Procesar video",
-            description = "Permite subir un archivo de video junto con instrucciones de procesamiento. " +
-                    "El procesamiento se ejecuta de forma asíncrona y devuelve el estado inicial del job.",
-            security = @SecurityRequirement(name = "cookieAuth")
+    @PostMapping(
+            value = "/process-video",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Video recibido y procesamiento iniciado")
-    })
-    @PostMapping(value = "/process-video",consumes = "multipart/form-data")
     public ResponseEntity<JobState> uploadVideo(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("instructions") @Valid InstructionsVideo instructions,
+            @RequestPart("instructions") String instructionsJson,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(videoService.processVideo(file,instructions,user));
+        InstructionsVideo instructions = objectMapper.readValue(instructionsJson, InstructionsVideo.class);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(videoService.processVideo(file, instructions, user));
+    }
+
+    @Operation(
+            summary = "Reprocesar Video",
+            description = "Permite al usuario reprocesar un video ya cargado. el procesamiento se ejecuta de forma asíncrona y devuelve el estado del job",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Procesamiento Iniciado")
+            }
+    )
+    @PostMapping(value = "/reprocess-video/{videoInputId}")
+    public ResponseEntity<JobState> reprocessVideo(@PathVariable Long videoInputId, @RequestBody @Valid InstructionsVideo instructionsVideo , @AuthenticationPrincipal User user) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(videoService.reprocessVideo(videoInputId, instructionsVideo, user));
     }
 
     @Operation(
@@ -65,25 +82,8 @@ public class VideoController implements IStandardApiResponses {
             @ApiResponse(responseCode = "200", description = "Estado del job obtenido correctamente")
     })
     @GetMapping("/job-status/{idJob}")
-    public ResponseEntity<JobState> getJobStatus(@PathVariable("idJob") @Min(1) Long idJob,@AuthenticationPrincipal User user){
-        return ResponseEntity.ok(videoService.getVideoState(idJob,user));
-    }
-
-    @Operation(
-            summary = "Reproducir video procesado",
-            description = "Permite realizar streaming del video procesado usando soporte de rangos HTTP (partial content).",
-            security = @SecurityRequirement(name = "cookieAuth")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "206", description = "Contenido parcial del video")
-    })
-    @GetMapping("/output/{videoOutputId}")
-    public ResponseEntity<ResourceRegion> streamVideo(
-            @PathVariable Long videoOutputId,
-            @RequestHeader HttpHeaders headers,
-            @AuthenticationPrincipal User user
-    ) throws IOException {
-        return videoService.streamVideo(videoOutputId, headers, user);
+    public ResponseEntity<JobState> getJobStatus(@PathVariable("idJob") @Min(1) Long idJob, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(videoService.getVideoState(idJob, user));
     }
 
     @Operation(
@@ -95,7 +95,102 @@ public class VideoController implements IStandardApiResponses {
             @ApiResponse(responseCode = "200", description = "Lista de videos obtenida correctamente")
     })
     @GetMapping("/all")
-    public ResponseEntity<List<VideoInWithVideoOutIds>> getAllVideos(@AuthenticationPrincipal User user){
+    public ResponseEntity<List<VideoInWithVideoOutIds>> getAllVideos(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(videoService.getAllVideos(user));
     }
+
+    @Operation(
+            summary = "Reproducir video procesado",
+            description = "Permite realizar streaming del video procesado usando soporte de rangos HTTP (partial content).",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "206", description = "Contenido parcial del video")
+    })
+    @GetMapping("/output/{videoOutputId}")
+    public ResponseEntity<ResourceRegion> streamVideoOut(
+            @PathVariable Long videoOutputId,
+            @RequestHeader HttpHeaders headers,
+            @AuthenticationPrincipal User user
+    ) throws IOException {
+        return videoService.streamVideoOut(videoOutputId, headers, user);
+    }
+
+    @Operation(
+            summary = "Reproducir video original",
+            description = "Permite realizar streaming del video original usando soporte de rangos HTTP (partial content).",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "206", description = "Contenido parcial del video")
+    })
+    @GetMapping("/input/{videoInputId}")
+    public ResponseEntity<ResourceRegion> streamVideoIn(
+            @PathVariable Long videoInputId,
+            @RequestHeader HttpHeaders headers,
+            @AuthenticationPrincipal User user
+    ) throws IOException {
+        return videoService.streamVideoIn(videoInputId, headers, user);
+    }
+
+    @Operation(
+            summary = "Descargar video procesado del usuario",
+            description = "Permite al usuario descargar el video procesado solicitado",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Video descargado correctamente")
+    })
+    @GetMapping("/output/{videoOutputId}/download")
+    public ResponseEntity<Resource> downloadVideoOut(
+            @PathVariable Long videoOutputId,
+            @AuthenticationPrincipal User user
+    ) throws IOException {
+        return videoService.downloadVideoOut(videoOutputId, user);
+    }
+
+    @Operation(
+            summary = "Descargar video original del usuario",
+            description = "Permite al usuario descargar el video original solicitado",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Video descargado correctamente")
+    })
+    @GetMapping("/input/{videoInputId}/download")
+    public ResponseEntity<Resource> downloadVideoIn(
+            @PathVariable Long videoInputId,
+            @AuthenticationPrincipal User user
+    ) throws IOException {
+        return videoService.downloadVideoIn(videoInputId, user);
+    }
+
+    @Operation(
+            summary = "Elimina video original del usuario",
+            description = "Permite al usuario eliminar el video original solicitado",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Video eliminado correctamente")
+    })
+    @DeleteMapping("/input/{videoInputId}")
+    public ResponseEntity<Void> deleteVideoIn(@PathVariable Long videoInputId, @AuthenticationPrincipal User user) {
+        videoService.deleteVideoIn(videoInputId, user);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Elimina video procesado del usuario",
+            description = "Permite al usuario eliminar el video procesado solicitado",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Video eliminado correctamente")
+    })
+    @DeleteMapping("/output/{videoOutputId}")
+    public ResponseEntity<Void> deleteVideoOut(@PathVariable Long videoOutputId, @AuthenticationPrincipal User user) {
+        videoService.deleteVideoOut(videoOutputId,user);
+        return ResponseEntity.ok().build();
+    }
+
 }

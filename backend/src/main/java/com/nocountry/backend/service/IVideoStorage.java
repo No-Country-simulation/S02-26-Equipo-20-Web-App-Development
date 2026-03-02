@@ -7,4 +7,8 @@ public interface IVideoStorage {
     String saveVideo(MultipartFile multipartFile, User user);
 
     Long getFolderSizeBytes(User user);
+
+    void deleteVideoIn(String path);
+
+    void deleteVideoOut(String path);
 }
