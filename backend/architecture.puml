@@ -1,0 +1,227 @@
+@startuml
+skinparam style strictuml
+
+' =======================
+' Paquetes
+' =======================
+package "model" {
+  class User <<entity>> {
+    Long id
+    String name
+    String lastname
+    String email
+    String password
+    String userFolderName
+    Long userFolderSize
+    boolean enabled
+    LocalDateTime createdAt
+  }
+
+  class VideoIn <<entity>> {
+    Long id
+    String path
+    String name
+    Integer duration
+    Long videoSize
+    VideoState videoState
+    String videoInstructions
+    LocalDateTime createdAt
+    boolean deleted
+  }
+
+  class VideoOut <<entity>> {
+    Long id
+    String path
+    String name
+    Integer durationSeconds
+    Long videoSizeBytes
+    boolean onlyRotated
+    LocalDateTime createdAt
+    boolean deleted
+  }
+
+  enum VideoState {
+    UPLOADED
+    PROCESSING
+    FAILED
+    COMPLETED
+  }
+}
+
+package "repository" {
+  interface IUserRepository <<repository>>
+  interface IVideoInRepository <<repository>>
+  interface IVideoOutRepository <<repository>>
+}
+
+package "service (interfaces)" {
+  interface IVideoService <<service>> {
+    processVideo()
+    reprocessVideo()
+    getVideoState()
+    getAllVideos()
+    streamVideoOut()
+    streamVideoIn()
+    downloadVideoOut()
+    downloadVideoIn()
+    deleteVideoIn()
+    deleteVideoOut()
+  }
+
+  interface IVideoInService <<service>>
+  interface IVideoOutService <<service>>
+  interface IFreeVideoService <<service>> {
+    processVideo()
+    getVideoState()
+    streamVideo()
+    downloadVideo()
+  }
+
+  interface IVideoStorage <<service>> {
+    saveVideo()
+    getFolderSizeBytes()
+    deleteVideoIn()
+    deleteVideoOut()
+  }
+
+  interface IUserService <<service>> {
+    updateProfile()
+  }
+}
+
+package "service (implementaciones)" {
+  class VideoServiceImpl <<service>> {
+    +processVideo()
+    +reprocessVideo()
+    +getVideoState()
+    +getAllVideos()
+    +streamVideoOut()
+    +streamVideoIn()
+    +downloadVideoOut()
+    +downloadVideoIn()
+    +deleteVideoIn()
+    +deleteVideoOut()
+  }
+
+  class VideoInServiceImpl <<service>>
+  class VideoOutServiceImpl <<service>>
+  class FreeVideoServiceImpl <<service>>
+  class VideoStorageImpl <<service>>
+  class UserServiceImpl <<service>>
+  class AuthService <<service>> {
+    +register()
+    +login()
+    +me()
+  }
+
+  class RedisStreamPublisher <<service>>
+}
+
+package "controller" {
+  class AuthController <<controller>> {
+    +register()
+    +login()
+    +logout()
+    +me()
+  }
+
+  class UserController <<controller>> {
+    +updateProfile()
+  }
+
+  class VideoController <<controller>> {
+    +uploadVideo()
+    +reprocessVideo()
+    +getJobStatus()
+    +getAllVideos()
+    +streamVideoOut()
+    +streamVideoIn()
+    +downloadVideoOut()
+    +downloadVideoIn()
+    +deleteVideoIn()
+    +deleteVideoOut()
+  }
+
+  class FreeVideoController <<controller>> {
+    +uploadVideo()
+    +getJobStatus()
+    +streamVideo()
+    +downloadVideo()
+  }
+}
+
+package "security" {
+  class JwtUtils
+}
+
+package "infra Spring" {
+  class AuthenticationManager
+}
+
+' =======================
+' Relaciones entre entidades
+' =======================
+
+User "1" o-- "0..*" VideoIn
+VideoIn "1" o-- "0..*" VideoOut
+VideoIn --> VideoState
+VideoOut --> VideoIn
+
+' =======================
+' Repositorios y entidades
+' =======================
+
+IUserRepository --> User
+IVideoInRepository --> VideoIn
+IVideoOutRepository --> VideoOut
+
+' =======================
+' Interfaces de servicio e implementaciones
+' =======================
+
+IVideoService <|.. VideoServiceImpl
+IVideoInService <|.. VideoInServiceImpl
+IVideoOutService <|.. VideoOutServiceImpl
+IFreeVideoService <|.. FreeVideoServiceImpl
+IVideoStorage <|.. VideoStorageImpl
+IUserService <|.. UserServiceImpl
+
+' =======================
+' Servicios y repositorios
+' =======================
+
+VideoServiceImpl --> IVideoInService
+VideoServiceImpl --> IVideoOutService
+VideoServiceImpl --> IVideoStorage
+VideoServiceImpl --> IUserRepository
+VideoServiceImpl --> RedisStreamPublisher
+
+VideoInServiceImpl --> IVideoInRepository
+VideoOutServiceImpl --> IVideoOutRepository
+UserServiceImpl --> IUserRepository
+
+AuthService --> IUserRepository
+AuthService --> JwtUtils
+AuthService --> AuthenticationManager
+
+VideoStorageImpl --> User
+
+' =======================
+' Controladores y servicios
+' =======================
+
+AuthController --> AuthService
+UserController --> IUserService
+VideoController --> IVideoService
+FreeVideoController --> IFreeVideoService
+
+' =======================
+' Dependencias adicionales
+' =======================
+
+VideoServiceImpl --> VideoIn
+VideoServiceImpl --> VideoOut
+VideoServiceImpl --> User
+FreeVideoServiceImpl --> VideoOut
+
+@enduml
