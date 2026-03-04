@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import Logo from '../../assets/logo.png';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,23 +11,10 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-4 flex items-center space-x-2">
-              <div className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-lg">
-                <svg
-                  className="h-5 w-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <span className="text-lg font-bold text-gray-900">VideoShorts</span>
+              <img src={Logo} alt="logo" />
+              <span className="text-xl font-bold text-gray-900">ClipFlow</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-pretty text-gray-600">
               Convierte tus videos horizontales en shorts verticales automáticamente.
             </p>
           </div>
@@ -75,7 +63,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-8">
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-center text-sm text-pretty text-gray-600">
             © {currentYear} VideoShorts. Todos los derechos reservados.
           </p>
         </div>
