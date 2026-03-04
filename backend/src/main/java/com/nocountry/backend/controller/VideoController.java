@@ -11,7 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -28,6 +31,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/video")
@@ -41,6 +45,7 @@ public class VideoController implements IStandardApiResponses {
 
     private final IVideoService videoService;
     private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     @PostMapping(
             value = "/process-video",
@@ -52,6 +57,11 @@ public class VideoController implements IStandardApiResponses {
             @AuthenticationPrincipal User user
     ) {
         InstructionsVideo instructions = objectMapper.readValue(instructionsJson, InstructionsVideo.class);
+
+        Set<ConstraintViolation<InstructionsVideo>> violations = validator.validate(instructions);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
