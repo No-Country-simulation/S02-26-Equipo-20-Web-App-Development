@@ -1,15 +1,49 @@
 import logging
 import subprocess
+import tempfile
 from pathlib import Path
 
 from models import VideoJob
 from .video_metadata import get_video_metadata
-from .scenes_detector import detect_scenes,create_scenes,adjust_scenes_with_vad
+from .scenes_detector import detect_scenes, create_scenes, adjust_scenes_with_vad, parse_vector_times
 from .output_converter import build_video_output
 from .filter import build_filter
 from .encoder import choose_encoder_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _concat_segments(segment_files: list[Path], output_file: Path):
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".txt", delete=False, dir=output_file.parent
+    ) as f:
+        concat_list_path = Path(f.name)
+        for seg_file in segment_files:
+            safe_path = str(seg_file).replace("'", "'\\''")
+            f.write(f"file '{safe_path}'\n")
+
+    logger.info("Concat list written: %s (%d files)", concat_list_path, len(segment_files))
+
+    command = [
+        "ffmpeg", "-y",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", str(concat_list_path),
+        "-c", "copy",
+        "-movflags", "+faststart",
+        str(output_file)
+    ]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        logger.debug("FFmpeg concat stdout: %s", result.stdout)
+        logger.info("Concat output created: %s", output_file)
+    except subprocess.CalledProcessError as e:
+        logger.error("FFmpeg concat failed: %s", e.stderr)
+        raise
+    finally:
+        concat_list_path.unlink(missing_ok=True)
 
 
 def video_converter(video_job: VideoJob):
@@ -37,26 +71,35 @@ def video_converter(video_job: VideoJob):
 
     logger.info("Output directory: %s", output_dir)
 
-    try:
-        if video_job.instructions_video.with_scene_detector:
-            logger.info("Segmentation strategy: SCENE_DETECTION")
+    instructions = video_job.instructions_video
 
-            segments = detect_scenes( # 1 - 30, 30 - 50
+    try:
+        if instructions.choose_times and instructions.vector_times:
+            logger.info("Segmentation strategy: VECTOR_TIMES")
+            segments = parse_vector_times(instructions.vector_times, info_video["duration"])
+            logger.info("Parsed %d segments from vector_times", len(segments))
+
+        elif instructions.with_scene_detector:
+            logger.info("Segmentation strategy: SCENE_DETECTION")
+            segments = detect_scenes(
                 input_video,
-                min_scene_duration=video_job.instructions_video.min_scene_duration,
-                max_scene_duration=video_job.instructions_video.max_scene_duration,
+                min_scene_duration=instructions.min_scene_duration,
+                max_scene_duration=instructions.max_scene_duration,
                 duration=info_video["duration"],
             )
 
         else:
             logger.info("Segmentation strategy: TIME_BASED")
-
             segments = create_scenes(
-                segments_requested=video_job.instructions_video.number_of_segments,
+                segments_requested=instructions.number_of_segments,
                 duration=info_video["duration"]
             )
 
-        segments = adjust_scenes_with_vad(input_video,segments)
+
+        logger.info(segments)
+        segments = adjust_scenes_with_vad(input_video, segments)
+        logger.info(segments)
+
     except Exception:
         logger.exception("Failed generating segments")
         raise
@@ -67,23 +110,21 @@ def video_converter(video_job: VideoJob):
 
     logger.info("Total segments generated: %d", len(segments))
 
+    # ── Encoding ─────────────────────────────────────────────────────────────
     encoder, encoder_flags = choose_encoder_settings(info_video)
-
-    logger.info("Encoder initialized once for all segments")
-    logger.info("Selected encoder: %s", encoder)
-    logger.info("Encoder flags: %s", encoder_flags)
-
     use_gpu = encoder in ("h264_nvenc", "h264_amf")
     filter_complex = build_filter(metadata=info_video, use_gpu=use_gpu)
+
+    logger.info("Selected encoder: %s | GPU: %s", encoder, use_gpu)
 
     if not filter_complex:
         logger.error("Failed to build filter_complex")
         raise RuntimeError("Invalid filter_complex")
 
-    outputs = []
+    # ── Procesar cada segmento ────────────────────────────────────────────────
+    segment_files: list[Path] = []
 
     for i, (start, end) in enumerate(segments):
-
         length = end - start
 
         if length <= 0:
@@ -94,10 +135,7 @@ def video_converter(video_job: VideoJob):
 
         logger.info(
             "Processing segment %d | start=%.2f end=%.2f length=%.2f",
-            i + 1,
-            start,
-            end,
-            length
+            i + 1, start, end, length
         )
 
         command = [
@@ -117,24 +155,31 @@ def video_converter(video_job: VideoJob):
             logger.debug("FFmpeg command: %s", " ".join(command))
 
         try:
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
             logger.debug("FFmpeg stdout: %s", result.stdout)
             logger.info("Segment created: %s", output_file)
-
+            segment_files.append(output_file)
         except subprocess.CalledProcessError as e:
-            logger.error("FFmpeg failed for segment %d", i + 1)
-            logger.error("stderr: %s", e.stderr)
+            logger.error("FFmpeg failed for segment %d | stderr: %s", i + 1, e.stderr)
             raise
 
-        video_output = build_video_output(output_file)
-        outputs.append(video_output)
+    # ── Join: concatenar todos los segmentos en uno solo ─────────────────────
+    if instructions.join_times and instructions.choose_times and len(segment_files) > 1:
+        logger.info("JOIN_TIMES enabled — concatenating %d segments", len(segment_files))
 
-    logger.info("VIDEO_CONVERTER_COMPLETE | files=%d", len(outputs))
+        joined_file = output_dir / "joined_output.mp4"
+        _concat_segments(segment_files, joined_file)
 
+        # Eliminar segmentos individuales, solo se entrega el joined
+        for seg_file in segment_files:
+            seg_file.unlink(missing_ok=True)
+            logger.debug("Removed intermediate segment: %s", seg_file)
+
+        joined_output = build_video_output(joined_file)
+        logger.info("VIDEO_CONVERTER_COMPLETE | mode=JOINED | file=%s", joined_file)
+        return [joined_output]
+
+    # ── Sin join: devolver segmentos individuales ─────────────────────────────
+    outputs = [build_video_output(f) for f in segment_files]
+    logger.info("VIDEO_CONVERTER_COMPLETE | mode=SEGMENTS | files=%d", len(outputs))
     return outputs
