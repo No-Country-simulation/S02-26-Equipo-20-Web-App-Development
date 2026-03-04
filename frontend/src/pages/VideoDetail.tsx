@@ -13,6 +13,8 @@ import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import type { InstructionsVideo, JobState } from '@/types/video.types';
 import { videoService } from '@/api/services/video.service';
+import { useDeleteVideo } from '@/hooks/useDeleteVideo';
+import { ChevronLeft, RotateCcw, Trash2, X, Loader2 } from 'lucide-react';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
@@ -31,6 +33,9 @@ export default function VideoDetail() {
   const [showReprocessModal, setShowReprocessModal] = useState(false);
   const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
+  const [videoDeleted, setVideoDeleted] = useState(false);
+  const [confirmDeleteVideo, setConfirmDeleteVideo] = useState(false);
+  const { mutate: deleteVideo, isPending: isDeletingVideo } = useDeleteVideo();
 
   const { mutate: reprocess, isPending: isReprocessing } = useReprocessVideo();
 
@@ -92,21 +97,23 @@ export default function VideoDetail() {
     );
   }
 
+  const handleDeleteVideo = () => {
+    deleteVideo(video.videoInId, {
+      onSuccess: () => {
+        setVideoDeleted(true);
+        setConfirmDeleteVideo(false);
+      },
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 py-8 md:py-14">
         {/* Back */}
         <Link
           to="/dashboard"
           className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeft className="h-5 w-5" />
           Volver al Dashboard
         </Link>
 
@@ -118,13 +125,20 @@ export default function VideoDetail() {
               <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Video original
               </p>
-              <video
-                src={videoService.getStreamInputUrl(video.videoInId)}
-                className="w-full rounded-xl bg-gray-900"
-                controls
-                playsInline
-                preload="metadata"
-              />
+              {videoDeleted ? (
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50">
+                  <p className="text-sm text-gray-400">Video eliminado</p>
+                </div>
+              ) : (
+                <video
+                  key={video.videoInId}
+                  src={videoService.getStreamInputUrl(video.videoInId)}
+                  className="w-full rounded-xl bg-gray-900"
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              )}
             </div>
 
             {/* Metadata + acciones */}
@@ -136,21 +150,47 @@ export default function VideoDetail() {
                   {video.videoOutIds.length === 1 ? 'short generado' : 'shorts generados'}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowReprocessModal(true)}
-                disabled={activeJobId !== null}
-                className="gap-2 self-start">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                Reprocesar
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReprocessModal(true)}
+                  disabled={activeJobId !== null || videoDeleted}
+                  className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  Reprocesar
+                </Button>
+                {!videoDeleted ? (
+                  confirmDeleteVideo ? (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setConfirmDeleteVideo(false)}
+                        disabled={isDeletingVideo}>
+                        No
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={handleDeleteVideo}
+                        disabled={isDeletingVideo}>
+                        {isDeletingVideo ? 'Eliminando...' : 'Sí, eliminar'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteVideo(true)}
+                      className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                      title="Eliminar video original">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
+                    Video eliminado
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -158,24 +198,7 @@ export default function VideoDetail() {
         {/* Banner procesamiento activo */}
         {activeJobId !== null && (
           <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-            <svg
-              className="h-5 w-5 shrink-0 animate-spin text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
+            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
             <div>
               <p className="font-medium text-blue-900">Reprocesando video</p>
               <p className="text-sm text-blue-700">
@@ -191,7 +214,7 @@ export default function VideoDetail() {
         {/* Modal reprocess */}
         {showReprocessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6">
+            <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {/* Header */}
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -204,14 +227,7 @@ export default function VideoDetail() {
                   onClick={handleCloseModal}
                   disabled={isReprocessing}
                   className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="h-6 w-6" />
                 </button>
               </div>
 
@@ -223,14 +239,7 @@ export default function VideoDetail() {
                   onClick={handleConfirmReprocess}
                   disabled={isReprocessing}
                   className="w-full gap-2">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
+                  <RotateCcw className="h-5 w-5" />
                   {isReprocessing ? 'Iniciando...' : 'Generar nuevos shorts'}
                 </Button>
               </div>
