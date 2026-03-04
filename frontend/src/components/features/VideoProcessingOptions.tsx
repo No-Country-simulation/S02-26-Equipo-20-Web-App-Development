@@ -34,7 +34,7 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
               </div>
               <span className="text-sm font-medium text-gray-900">Detección de escenas</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-pretty text-gray-500">
               Detecta cambios de escena automáticamente y genera un short por escena.
             </p>
           </button>
@@ -57,7 +57,7 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
               </div>
               <span className="text-sm font-medium text-gray-900">Por segmentos</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-pretty text-gray-500">
               Divide el video en partes iguales según la cantidad que elijas.
             </p>
           </button>
@@ -124,7 +124,7 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
               onClick={() => update({ numberOfSegments: Math.max(1, value.numberOfSegments - 1) })}
               disabled={value.numberOfSegments <= 1}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-xl font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-40">
-              −
+              -
             </button>
             <div className="text-center">
               <span className="text-4xl font-bold text-blue-600">{value.numberOfSegments}</span>

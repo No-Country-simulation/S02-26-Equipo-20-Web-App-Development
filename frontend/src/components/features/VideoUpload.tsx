@@ -1,4 +1,5 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
+import { Upload, AlertCircle, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface VideoUploadProps {
@@ -21,29 +22,23 @@ export function VideoUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
-    // Validar tipo
     if (!acceptedFormats.includes(file.type)) {
       setError(
         `Formato no soportado. Solo se aceptan: ${acceptedFormats.map((f) => f.split('/')[1].toUpperCase()).join(', ')}`,
       );
       return false;
     }
-
-    // Validar tamaño
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       setError(`El archivo es demasiado grande. Máximo ${maxSizeMB}MB`);
       return false;
     }
-
     setError(null);
     return true;
   };
 
   const handleFile = (file: File) => {
-    if (validateFile(file)) {
-      onUpload(file);
-    }
+    if (validateFile(file)) onUpload(file);
   };
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
@@ -69,25 +64,18 @@ export function VideoUpload({
     setIsDragging(false);
 
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFile(files[0]);
-    }
+    if (files.length > 0) handleFile(files[0]);
   };
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
-    }
+    if (files && files.length > 0) handleFile(files[0]);
   };
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleClick = () => fileInputRef.current?.click();
 
   return (
     <div className="w-full">
-      {/* Drop Zone */}
       <div
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -98,7 +86,7 @@ export function VideoUpload({
           isDragging
             ? 'scale-[1.02] border-blue-500 bg-blue-50'
             : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
-        } ${isUploading ? 'pointer-events-none opacity-75' : ''} `}>
+        } ${isUploading ? 'pointer-events-none opacity-75' : ''}`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <svg width="100%" height="100%">
@@ -108,30 +96,16 @@ export function VideoUpload({
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
         </div>
-
-        {/* Content */}
         <div className="relative px-6 py-10 sm:px-12 sm:py-12">
           <div className="mx-auto max-w-md text-center">
-            {/* Icon */}
             <div className="mb-6 flex justify-center">
               <div
-                className={`rounded-full p-4 transition-all duration-300 ${isDragging ? 'scale-110 bg-blue-100' : 'bg-gray-200'} `}>
-                <svg
+                className={`rounded-full p-4 transition-all duration-300 ${isDragging ? 'scale-110 bg-blue-100' : 'bg-gray-200'}`}>
+                <Upload
                   className={`h-8 w-8 transition-colors md:h-8 md:w-8 ${isDragging ? 'text-blue-600' : 'text-gray-600'}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
+                />
               </div>
             </div>
-
-            {/* Text */}
             {isUploading ? (
               <div className="space-y-4">
                 <p className="text-lg font-semibold text-gray-900">Subiendo video...</p>
@@ -159,8 +133,6 @@ export function VideoUpload({
                 </p>
               </div>
             )}
-
-            {/* File Info */}
             {!isUploading && (
               <div className="mt-6 space-y-1 text-xs text-gray-500">
                 <p>Formatos: MP4, WebM, MOV, AVI</p>
@@ -169,8 +141,6 @@ export function VideoUpload({
             )}
           </div>
         </div>
-
-        {/* Hidden Input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -180,23 +150,10 @@ export function VideoUpload({
           disabled={isUploading}
         />
       </div>
-
-      {/* Error Message */}
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 p-4">
           <div className="flex items-start gap-3">
-            <svg
-              className="h-5 w-5 shrink-0 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
             <div>
               <p className="text-sm font-medium text-red-800">Error al subir archivo</p>
               <p className="mt-1 text-sm text-red-700">{error}</p>
@@ -204,19 +161,10 @@ export function VideoUpload({
           </div>
         </div>
       )}
-
-      {/* Alternative Upload Button */}
       {!isUploading && (
         <div className="mt-6 text-center">
           <Button variant="outline" onClick={handleClick} className="gap-2">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
+            <FolderOpen className="h-5 w-5" />
             Seleccionar archivo
           </Button>
         </div>
