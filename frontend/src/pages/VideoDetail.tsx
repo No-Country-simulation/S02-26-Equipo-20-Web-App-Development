@@ -32,7 +32,10 @@ export default function VideoDetail() {
 
   const [showReprocessModal, setShowReprocessModal] = useState(false);
   const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
-  const [activeJobId, setActiveJobId] = useState<number | null>(null);
+  const [activeJobId, setActiveJobId] = useState<number | null>(() => {
+    const stored = localStorage.getItem(`reprocessJobId:${id}`);
+    return stored ? Number(stored) : null;
+  });
   const [videoDeleted, setVideoDeleted] = useState(false);
   const [confirmDeleteVideo, setConfirmDeleteVideo] = useState(false);
   const { mutate: deleteVideo, isPending: isDeletingVideo } = useDeleteVideo();
@@ -41,16 +44,25 @@ export default function VideoDetail() {
 
   const video = videos.find((v) => v.videoInId === Number(id));
 
+  const setActiveJob = (jobId: number | null) => {
+    setActiveJobId(jobId);
+    if (jobId === null) {
+      localStorage.removeItem(`reprocessJobId:${id}`);
+    } else {
+      localStorage.setItem(`reprocessJobId:${id}`, String(jobId));
+    }
+  };
+
   useJobPolling({
     idJob: activeJobId,
     enabled: activeJobId !== null,
     onFinished: (_state: JobState) => {
-      setActiveJobId(null);
+      setActiveJob(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
       toast.success('¡Shorts listos!');
     },
     onFailed: (_state: JobState) => {
-      setActiveJobId(null);
+      setActiveJob(null);
       toast.error('El reprocesamiento falló');
     },
   });
@@ -61,7 +73,7 @@ export default function VideoDetail() {
       { videoInputId: video.videoInId, instructions },
       {
         onSuccess: (jobState) => {
-          setActiveJobId(jobState.idJob);
+          setActiveJob(jobState.idJob);
           setShowReprocessModal(false);
           setInstructions(DEFAULT_INSTRUCTIONS);
         },

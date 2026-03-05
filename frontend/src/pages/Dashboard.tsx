@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideos } from '@/hooks/useVideos';
@@ -10,11 +9,11 @@ import { VideoUpload } from '@/components/features/VideoUpload';
 import { VideoList } from '@/components/features/VideoList';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
-import type { InstructionsVideo, JobState } from '@/types/video.types';
+import type { InstructionsVideo } from '@/types/video.types';
 import { VideoProcessingOptions } from '@/components/features/VideoProcessingOptions';
 import { Plus, Video, Clapperboard, Database, X, ChevronLeft, Loader2, Upload } from 'lucide-react';
+import { useRefreshUser } from '@/hooks/useRefreshUser';
 
-// Instrucciones por defecto para el MVP
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
   isFollowFace: false,
@@ -31,6 +30,24 @@ function formatStorageSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
+function JobPoller({
+  jobId,
+  onFinished,
+  onFailed,
+}: {
+  jobId: number;
+  onFinished: (id: number) => void;
+  onFailed: (id: number) => void;
+}) {
+  useJobPolling({
+    idJob: jobId,
+    enabled: true,
+    onFinished: () => onFinished(jobId),
+    onFailed: () => onFailed(jobId),
+  });
+  return null;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -38,37 +55,35 @@ export default function Dashboard() {
   const { mutate: uploadVideo, isPending: isUploading } = useUploadVideo();
 
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [activeJobId, setActiveJobId] = useState<number | null>(() => {
-    const stored = localStorage.getItem('activeJobId');
-    return stored ? Number(stored) : null;
+  const [activeJobIds, setActiveJobIds] = useState<number[]>(() => {
+    const stored = localStorage.getItem('activeJobIds');
+    return stored ? JSON.parse(stored) : [];
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadStep, setUploadStep] = useState<'file' | 'options'>('file');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
 
-  // Polling del job activo
-  useJobPolling({
-    idJob: activeJobId,
-    enabled: activeJobId !== null,
-    onFinished: (_state: JobState) => {
-      setActiveJob(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
-      toast.success('¡Shorts listos!');
-    },
-    onFailed: (_state: JobState) => {
-      setActiveJob(null);
-      toast.error('El procesamiento falló');
-    },
-  });
+  const refreshUser = useRefreshUser();
 
-  const setActiveJob = (id: number | null) => {
-    setActiveJobId(id);
-    if (id === null) {
-      localStorage.removeItem('activeJobId');
-    } else {
-      localStorage.setItem('activeJobId', String(id));
-    }
+  const addActiveJob = (id: number) => {
+    setActiveJobIds((prev) => {
+      const next = [...prev, id];
+      localStorage.setItem('activeJobIds', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const removeActiveJob = (id: number) => {
+    setActiveJobIds((prev) => {
+      const next = prev.filter((j) => j !== id);
+      if (next.length === 0) {
+        localStorage.removeItem('activeJobIds');
+      } else {
+        localStorage.setItem('activeJobIds', JSON.stringify(next));
+      }
+      return next;
+    });
   };
 
   const handleFileSelected = (file: File) => {
@@ -79,14 +94,10 @@ export default function Dashboard() {
   const handleConfirmUpload = () => {
     if (!selectedFile) return;
     uploadVideo(
-      {
-        file: selectedFile,
-        instructions,
-        onProgress: setUploadProgress,
-      },
+      { file: selectedFile, instructions, onProgress: setUploadProgress },
       {
         onSuccess: (jobState) => {
-          setActiveJob(jobState.idJob);
+          addActiveJob(jobState.idJob);
           setShowUploadModal(false);
           setUploadStep('file');
           setSelectedFile(null);
@@ -105,7 +116,6 @@ export default function Dashboard() {
     setInstructions(DEFAULT_INSTRUCTIONS);
   };
 
-  // Stats
   const stats = {
     totalVideos: videos.length,
     totalShorts: videos.reduce((acc, v) => acc + v.videoOutIds.length, 0),
@@ -113,6 +123,24 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto bg-gray-50 px-4 py-8 md:py-14">
+      {/* Pollers — uno por job activo */}
+      {activeJobIds.map((jobId) => (
+        <JobPoller
+          key={jobId}
+          jobId={jobId}
+          onFinished={(id) => {
+            removeActiveJob(id);
+            queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
+            refreshUser();
+            toast.success('¡Shorts listos!');
+          }}
+          onFailed={(id) => {
+            removeActiveJob(id);
+            toast.error('El procesamiento falló');
+          }}
+        />
+      ))}
+
       {/* Header */}
       <div className="mb-8">
         <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row">
@@ -178,7 +206,6 @@ export default function Dashboard() {
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {/* Header */}
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {uploadStep === 'options' && (
@@ -206,7 +233,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Indicador de pasos */}
             <div className="mb-6 flex items-center gap-2">
               <div className="h-1.5 flex-1 rounded-full bg-blue-500" />
               <div
@@ -216,12 +242,10 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Contenido */}
             {uploadStep === 'file' ? (
               <VideoUpload onUpload={handleFileSelected} isUploading={false} uploadProgress={0} />
             ) : (
               <div className="space-y-6">
-                {/* Archivo seleccionado */}
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <Video className="h-5 w-5 shrink-0 text-blue-600" />
                   <span className="min-w-0 truncate text-sm font-medium text-gray-700">
@@ -231,7 +255,6 @@ export default function Dashboard() {
 
                 <VideoProcessingOptions value={instructions} onChange={setInstructions} />
 
-                {/* Botón confirmar */}
                 {isUploading ? (
                   <div className="space-y-2">
                     <div className="h-2 overflow-hidden rounded-full bg-gray-200">
@@ -257,13 +280,17 @@ export default function Dashboard() {
       )}
 
       {/* Banner procesamiento activo */}
-      {activeJobId !== null && (
+      {activeJobIds.length > 0 && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
           <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
           <div>
-            <p className="font-medium text-blue-900">Procesando tu video</p>
+            <p className="font-medium text-blue-900">
+              {activeJobIds.length === 1
+                ? 'Procesando tu video'
+                : `Procesando videos (${activeJobIds.length} en cola)`}
+            </p>
             <p className="text-sm text-blue-700">
-              Esto puede tardar unos minutos. Te avisaremos cuando esté listo.
+              Esto puede tardar unos minutos. Te avisaremos cuando estén listos.
             </p>
           </div>
         </div>

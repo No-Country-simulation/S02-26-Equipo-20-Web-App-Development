@@ -3,6 +3,7 @@ import { authService } from '@/api/services/auth.service';
 import type { User } from '@/types/user.types';
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types';
 import { AuthContext } from './AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Estado del contexto de autenticación
@@ -24,6 +25,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -54,6 +56,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     await authService.logout();
+    queryClient.clear(); // limpia todo el caché
+    localStorage.removeItem('activeJobIds');
     setUser(null);
   };
 
