@@ -1,0 +1,13 @@
+.venv/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+.env
+*.env

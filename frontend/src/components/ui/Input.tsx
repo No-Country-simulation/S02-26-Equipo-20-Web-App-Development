@@ -28,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const widthClass = fullWidth ? 'w-full' : '';
 
     const baseInputStyles =
-      'flex h-10 rounded-lg border bg-white px-3 py-2 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+      'w-full flex h-10 rounded-lg border bg-white px-3 py-2 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
     const errorStyles = error
       ? 'border-red-500 focus-visible:ring-red-500'

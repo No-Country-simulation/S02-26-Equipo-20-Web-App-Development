@@ -1,0 +1,47 @@
+spring:
+  #Redis Connection Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 4
+          max-idle: 4
+          min-idle: 1
+          max-wait: -1ms
+  #PostgreSQL Configuration
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: BackendConnectionPool
+      maximum-pool-size: 4
+      minimum-idle: 2
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+      leakDetectionThreshold: 15000
+
+# File Storage Configuration
+video:
+  storage:
+    path: ${STORAGE_PATH}
+    max-user-size: ${STORAGE_MAX_USER_SIZE}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+#SpringDocs config
+springdoc:
+  swagger-ui:
+    # Habilita Swagger UI en desarrollo
+    enabled: true
+  api-docs:
+    # Habilita el endpoint OpenAPI
+    enabled: true

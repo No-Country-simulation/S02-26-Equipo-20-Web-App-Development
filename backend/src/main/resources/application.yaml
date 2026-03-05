@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: backend
+  profiles:
+    active: dev
+  #JPA Configuration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+# Redis Configuration
+redis:
+  stream:
+    job:
+      name: video-jobs
+      max-length: 10000
+    result:
+      name: video-results
+  consumer:
+    job:
+      group: python-worker
+    result:
+      group: java-backend

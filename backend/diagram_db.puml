@@ -1,0 +1,58 @@
+@startuml
+skinparam style strictuml
+
+' ==============
+' Tablas
+' ==============
+
+entity "users" as users {
+  * id_user : BIGINT <<PK>>
+  --
+  name : VARCHAR(255)
+  last_name : VARCHAR(255)
+  email : VARCHAR(255)
+  password : VARCHAR(255)
+  user_folder_name : VARCHAR(255)
+  user_folder_size : BIGINT
+  enabled : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "videos_in" as videos_in {
+  * id_video_in : BIGINT <<PK>>
+  --
+  id_user : BIGINT <<FK>>
+  path : VARCHAR(1024)
+  name : VARCHAR(255)
+  duration : INTEGER
+  video_size : BIGINT
+  video_state : VARCHAR(50)
+  video_instructions : TEXT
+  created_at : TIMESTAMP
+  deleted : BOOLEAN
+}
+
+entity "videos_out" as videos_out {
+  * id_video_out : BIGINT <<PK>>
+  --
+  id_video_in : BIGINT <<FK>>
+  path : VARCHAR(1024)
+  name : VARCHAR(255)
+  duration_seconds : INTEGER
+  video_size_bytes : BIGINT
+  only_rotated : BOOLEAN
+  created_at : TIMESTAMP
+  deleted : BOOLEAN
+}
+
+' ==============
+' Relaciones
+' ==============
+
+' users (1) --- (N) videos_in
+users ||--o{ videos_in : "1:N"
+
+' videos_in (1) --- (N) videos_out
+videos_in ||--o{ videos_out : "1:N"
+
+@enduml

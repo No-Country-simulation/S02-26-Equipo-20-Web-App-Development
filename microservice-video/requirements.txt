@@ -1,0 +1,6 @@
+redis
+pydantic
+python-dotenv
+scenedetect
+opencv-python
+webrtcvad-wheels

@@ -1,35 +1,24 @@
 export const API_ENDPOINTS = {
-  // Auth
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
-    REFRESH: '/auth/refresh',
   },
-
-  // Videos
+  USERS: {
+    UPDATE_PROFILE: '/users/me',
+  },
   VIDEOS: {
-    LIST: '/videos',
-    UPLOAD: '/videos/upload',
-    DETAIL: (id: string) => `/videos/${id}`,
-    DELETE: (id: string) => `/videos/${id}`,
-    DOWNLOAD: (id: string) => `/videos/${id}/download`,
-    STATUS: (id: string) => `/videos/${id}/status`,
-  },
-
-  // Shorts (videos generados)
-  SHORTS: {
-    LIST: (videoId: string) => `/videos/${videoId}/shorts`,
-    DETAIL: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}`,
-    DOWNLOAD: (videoId: string, shortId: string) => `/videos/${videoId}/shorts/${shortId}/download`,
-  },
-
-  // User
-  USER: {
-    PROFILE: '/user/profile',
-    UPDATE: '/user/profile',
-    CHANGE_PASSWORD: '/user/password',
+    UPLOAD: '/video/process-video',
+    REPROCESS: (videoInputId: string) => `/video/reprocess-video/${videoInputId}`,
+    ALL: '/video/all',
+    STATUS: (idJob: string) => `/video/job-status/${idJob}`,
+    STREAM: (videoOutputId: string) => `/video/output/${videoOutputId}`,
+    STREAM_INPUT: (videoInputId: string) => `/video/input/${videoInputId}`,
+    DOWNLOAD_OUTPUT: (videoOutputId: string) => `/video/output/${videoOutputId}/download`,
+    DOWNLOAD_INPUT: (videoInputId: string) => `/video/input/${videoInputId}/download`,
+    DELETE_INPUT: (videoInputId: string) => `/video/input/${videoInputId}`,
+    DELETE_OUTPUT: (videoOutputId: string) => `/video/output/${videoOutputId}`,
   },
 } as const;
 
@@ -39,7 +28,6 @@ export function buildUrl(
   params?: Record<string, string | number | boolean>,
 ): string {
   if (!params) return endpoint;
-
   const queryString = new URLSearchParams(
     Object.entries(params).reduce(
       (acc, [key, value]) => {
@@ -49,6 +37,5 @@ export function buildUrl(
       {} as Record<string, string>,
     ),
   ).toString();
-
   return `${endpoint}?${queryString}`;
 }

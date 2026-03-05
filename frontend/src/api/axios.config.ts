@@ -1,52 +1,45 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // Obtener URL base desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
-// Crear instancia de axios
+/**
+ * Instancia de axios configurada para autenticación con cookies
+ * El token JWT se envía automáticamente en las cookies (HttpOnly)
+ */
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 30000, // 30 segundos
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enviar cookies automáticamente en cada request
 });
-
-// Request interceptor - Agregar token a todas las requests
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // Obtener token del localStorage
-    const token = localStorage.getItem('auth_token');
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  },
-);
 
 // Response interceptor - Manejar errores globalmente
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error: AxiosError) => {
     // Manejar errores comunes
     if (error.response) {
+      const url = error.config?.url ?? '';
+      const isAuthCheck = url.includes('/auth/me');
+      const isRegister = url.includes('/auth/register');
+      const isOnAuthPage =
+        window.location.pathname.includes('/login') ||
+        window.location.pathname.includes('/register');
       switch (error.response.status) {
         case 401:
-          // Token inválido o expirado
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+          if (!isAuthCheck && !isOnAuthPage) {
+            window.location.href = '/login';
+          }
           break;
-        case 403:
-          console.error('No tenés permisos para esta acción');
+        case 403: {
+          if (!isAuthCheck && !isRegister && !isOnAuthPage) {
+            window.location.href = '/login';
+          }
           break;
+        }
         case 404:
           console.error('Recurso no encontrado');
           break;
