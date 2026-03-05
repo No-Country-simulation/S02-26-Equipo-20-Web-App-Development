@@ -35,5 +35,5 @@ public interface IVideoService {
 
     void deleteVideoOut(Long videoOutputId, User user);
 
-
+    List<JobState> getJobsProcessing(User user);
 }

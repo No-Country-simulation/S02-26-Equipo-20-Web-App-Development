@@ -1,5 +1,7 @@
 package com.nocountry.backend.service.impl;
 
+import com.nocountry.backend.service.*;
+import org.springframework.http.*;
 import com.nocountry.backend.dto.video.InstructionsVideo;
 import com.nocountry.backend.dto.video.JobState;
 import com.nocountry.backend.dto.video.VideoInWithVideoOutIds;
@@ -10,13 +12,11 @@ import com.nocountry.backend.model.VideoIn;
 import com.nocountry.backend.model.VideoOut;
 import com.nocountry.backend.model.VideoState;
 import com.nocountry.backend.repository.IUserRepository;
-import com.nocountry.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.ResourceRegion;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -84,7 +84,7 @@ public class VideoServiceImpl implements IVideoService {
     @Transactional
     @Override
     public JobState reprocessVideo(Long videoInputId, InstructionsVideo instructionsVideo, User user) {
-        VideoIn originalVideo = videoInService.getVideoInByIdAndUserId(videoInputId,user.getId());
+        VideoIn originalVideo = videoInService.getVideoInByIdAndUserId(videoInputId, user.getId());
         VideoIn newVideo = new VideoIn();
         newVideo.setUser(originalVideo.getUser());
         newVideo.setPath(originalVideo.getPath());
@@ -126,13 +126,13 @@ public class VideoServiceImpl implements IVideoService {
     @Override
     public ResponseEntity<ResourceRegion> streamVideoOut(Long videoOutputId, HttpHeaders headers, User user) throws IOException {
         Path path = videoOutService.getVideoOutPathById(videoOutputId, user);
-        return streamVideo(path,headers);
+        return streamVideo(path, headers);
     }
 
     @Override
     public ResponseEntity<ResourceRegion> streamVideoIn(Long videoInputId, HttpHeaders headers, User user) throws IOException {
         Path path = videoInService.getVideoInPathById(videoInputId, user);
-        return streamVideo(path,headers);
+        return streamVideo(path, headers);
     }
 
     @Override
@@ -162,11 +162,11 @@ public class VideoServiceImpl implements IVideoService {
     private String generateStrategy(String strategy) {
         InstructionsVideo iv = objectMapper.readValue(strategy, InstructionsVideo.class);
         String result;
-        if (iv.withSceneDetector() != null && iv.withSceneDetector()){
-            result = "SceneDetector min: "+ iv.minSceneDuration() + " max: " + iv.maxSceneDuration();
+        if (iv.withSceneDetector() != null && iv.withSceneDetector()) {
+            result = "SceneDetector min: " + iv.minSceneDuration() + " max: " + iv.maxSceneDuration();
         } else if (iv.chooseTimes() != null && iv.chooseTimes()) {
-           result = "ChooseTimes " + (iv.joinTimes() != null && iv.joinTimes() ? "join" : "") + " " + iv.vectorTimes() ;
-        }else {
+            result = "ChooseTimes " + (iv.joinTimes() != null && iv.joinTimes() ? "join" : "") + " " + iv.vectorTimes();
+        } else {
             result = "Segments: " + iv.numberOfSegments();
         }
 
@@ -181,7 +181,7 @@ public class VideoServiceImpl implements IVideoService {
 
     @Override
     public ResponseEntity<Resource> downloadVideoIn(Long videoInputId, User user) throws IOException {
-        Path path = videoInService.getVideoInPathById(videoInputId,user);
+        Path path = videoInService.getVideoInPathById(videoInputId, user);
         return buildDownloadResponse(path);
     }
 
@@ -214,11 +214,16 @@ public class VideoServiceImpl implements IVideoService {
     @Transactional
     @Override
     public void deleteVideoOut(Long videoOutputId, User user) {
-       VideoOut videoOut = videoOutService.getVideoOutByIdAndUserId(videoOutputId,user.getId());
-       videoStorage.deleteVideoOut(videoOut.getPath());
-       userRepository.decreaseFolderSize(user.getId(), videoOut.getVideoSizeBytes());
-       videoOut.setDeleted(true);
-       videoOutService.saveVideo(videoOut);
+        VideoOut videoOut = videoOutService.getVideoOutByIdAndUserId(videoOutputId, user.getId());
+        videoStorage.deleteVideoOut(videoOut.getPath());
+        userRepository.decreaseFolderSize(user.getId(), videoOut.getVideoSizeBytes());
+        videoOut.setDeleted(true);
+        videoOutService.saveVideo(videoOut);
+    }
+
+    @Override
+    public List<JobState> getJobsProcessing(User user) {
+        return videoInService.getAllVideosWithStateProcessing(user, VideoState.PROCESSING);
     }
 
     private ResourceRegion buildRegion(

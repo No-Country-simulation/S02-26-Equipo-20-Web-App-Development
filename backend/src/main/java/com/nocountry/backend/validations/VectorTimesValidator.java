@@ -112,7 +112,7 @@ public class VectorTimesValidator implements ConstraintValidator<ValidVectorTime
                                 " con formato no reconocido: '" + time + "'"
                 );
             };
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new IllegalArgumentException(
                     "Segmento #" + segmentNum + " - tiempo de " + role +
                             " contiene caracteres no numéricos: '" + time + "'"
