@@ -57,7 +57,7 @@ def detect_scenes(
 
     return processed
 
-MIN_SCENE_DURATION = 5.0
+MIN_SCENE_DURATION = 15.0
 
 def create_scenes(segments_requested: int, duration: float):
 

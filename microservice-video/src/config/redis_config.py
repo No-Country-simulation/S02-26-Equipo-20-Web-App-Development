@@ -16,9 +16,13 @@ class RedisConfig:
     # Streams
     STREAM_JOBS = "video-jobs"
     STREAM_RESULTS = "video-results"
-    
-    # Consumer Group
+
+    # # Consumer Group
     GROUP_NAME = "python-workers"
+
+    # STREAM_JOBS = "video_jobs_debug"
+    # STREAM_RESULTS = "video_results_debug"
+    # GROUP_NAME = "video_group_debug"
     
     # Locks y TTL
     LOCK_TTL = int(os.getenv("LOCK_TTL", "900"))  # 15 minutos

@@ -4,3 +4,5 @@ python-dotenv
 scenedetect
 opencv-python
 webrtcvad-wheels
+numpy
+moviepy

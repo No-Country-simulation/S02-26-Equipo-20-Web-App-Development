@@ -2,15 +2,17 @@ import logging
 import subprocess
 from pathlib import Path
 
+from sympy import false, true
+
 from models import VideoJob
 from .video_metadata import get_video_metadata
 from .scenes_detector import detect_scenes,create_scenes,adjust_scenes_with_vad
 from .output_converter import build_video_output
 from .filter import build_filter
 from .encoder import choose_encoder_settings
+from smart_crop_processor import process_with_smart_crop
 
 logger = logging.getLogger(__name__)
-
 
 def video_converter(video_job: VideoJob):
     logger.info("VIDEO_CONVERTER_START")
@@ -37,9 +39,13 @@ def video_converter(video_job: VideoJob):
 
     logger.info("Output directory: %s", output_dir)
 
+    segments=[]
+    output_path=""
+
     try:
-        if video_job.instructions_video.with_scene_detector:
-            logger.info("Segmentation strategy: SCENE_DETECTION")
+        #MULTIPLES VIDEOS, SOLO GIRO VERTICAL
+        if video_job.instructions_video.with_scene_detector and video_job.instructions_video.is_follow_face==false: #DIVIDE EN X PARTES, NO CORTA VERTICALMENTE
+            logger.info("Segmentation strategy: SCENE_DETECTION - CORTAR VIDEOS")
 
             segments = detect_scenes( # 1 - 30, 30 - 50
                 input_video,
@@ -47,16 +53,53 @@ def video_converter(video_job: VideoJob):
                 max_scene_duration=video_job.instructions_video.max_scene_duration,
                 duration=info_video["duration"],
             )
+        #VIDEO SIMPLE, SOLO GIRO VERTICAL
+        elif video_job.instructions_video.with_scene_detector==false and video_job.instructions_video.is_follow_face == false:
 
-        else:
-            logger.info("Segmentation strategy: TIME_BASED")
-
+            logger.info("Segmentation strategy: TIME BASED VIDEO SIMPLE - SOLO GIRAR VIDEO")
             segments = create_scenes(
-                segments_requested=video_job.instructions_video.number_of_segments,
+                segments_requested=0,
                 duration=info_video["duration"]
             )
 
-        segments = adjust_scenes_with_vad(input_video,segments)
+            output_path = str(Path(output_dir) / f"follow_face_{video_job.id_job}.mp4")
+
+        else:  # UN SOLO VIDEO CORTAR VERTICAL / SIGUE OBJETOS
+
+            logger.info("Segmentation strategy: TIME_BASED")
+            # video simple cortado vertical
+            if video_job.instructions_video.with_scene_detector==false and video_job.instructions_video.is_follow_face:
+
+                logger.info("Usando modo FOLLOW FACE con SmartCrop VIDEO SIMPLE")
+
+                input_path = video_job.video_path
+                output_path = str(Path(output_dir) / f"follow_face_{video_job.id_job}.mp4")
+                process_with_smart_crop(input_path, output_path)
+                return [build_video_output(Path(output_path))]
+
+            # multiples videos, cortado vertical
+            else:  # MULTIPLES VIDEOS CORTAR VERTICAL / SIGUE OBJETOS
+
+                #NUEVO
+                logger.info("Usando modo FOLLOW FACE con SmartCrop VIDEO MULTIPLE")
+
+                input_path = video_job.video_path
+                output_path = str(Path(output_dir) / f"follow_face_{video_job.id_job}.mp4")
+                process_with_smart_crop(input_path, output_path)
+
+                #Para que haga el segmento a partir del nuevo video
+                input_video=output_path
+
+                segments = detect_scenes(  # 1 - 30, 30 - 50
+                    output_path,
+                    min_scene_duration=video_job.instructions_video.min_scene_duration,
+                    max_scene_duration=video_job.instructions_video.max_scene_duration,
+                    duration=info_video["duration"],
+                )
+
+                segments = adjust_scenes_with_vad(output_path, segments)
+
+
     except Exception:
         logger.exception("Failed generating segments")
         raise
@@ -135,6 +178,8 @@ def video_converter(video_job: VideoJob):
         video_output = build_video_output(output_file)
         outputs.append(video_output)
 
+
     logger.info("VIDEO_CONVERTER_COMPLETE | files=%d", len(outputs))
 
     return outputs
+

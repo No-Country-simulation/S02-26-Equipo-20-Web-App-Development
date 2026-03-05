@@ -158,7 +158,7 @@ class VideoWorker:
             self.redis_service.xdel(self.config.STREAM_JOBS, msg_id)
             
             logger.info(f"Mensaje procesado, confirmado y eliminado del stream: {msg_id}")
-            
+
         except Exception as e:
             logger.error(f"Error procesando mensaje {msg_id}: {e}", exc_info=True)
     
@@ -194,14 +194,14 @@ class VideoWorker:
             self.handle_entries(messages)
         
         if claimed_count > 0:
-            logger.info(f"♻️ Reclamados {claimed_count} job(s) abandonado(s)")
+            logger.info(f" Reclamados {claimed_count} job(s) abandonado(s)")
     
     def run(self) -> None:
         """Loop principal del worker"""
         self.running = True
-        logger.info(f"👷 {self.consumer_id} esperando trabajos...")
-        logger.info(f"📡 Stream: {self.config.STREAM_JOBS}")
-        logger.info(f"👥 Grupo: {self.config.GROUP_NAME}")
+        logger.info(f" {self.consumer_id} esperando trabajos...")
+        logger.info(f" Stream: {self.config.STREAM_JOBS}")
+        logger.info(f" Grupo: {self.config.GROUP_NAME}")
         logger.info("")
         
         while self.running:

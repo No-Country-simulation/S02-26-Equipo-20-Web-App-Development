@@ -1,0 +1,43 @@
+services:
+  redis:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass password123
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "password123", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    environment:
+      - TZ=America/El_Salvador
+    networks:
+      - short_video_network
+
+  
+volumes:
+  redis_data:
+    driver: local
+  video_data:
+    driver: local
+
+networks:
+  short_video_network:
+    driver: bridge
+
+#docker-compose up -d
+#docker-compose down
