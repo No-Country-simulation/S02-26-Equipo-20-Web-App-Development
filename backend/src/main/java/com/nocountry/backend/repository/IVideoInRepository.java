@@ -14,12 +14,11 @@ public interface IVideoInRepository extends JpaRepository<VideoIn, Long> {
     Optional<VideoIn> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);
 
     @Query("""
-    SELECT vi.id, vo.id
+    SELECT vi.id, vo.id, vi.videoInstructions
     FROM VideoOut vo
     JOIN vo.videoIn vi
     JOIN vi.user u
     WHERE u.id = :userId
-      AND vi.deleted = false
       AND vo.deleted = false
 """)
     List<Object[]> findVideoInIdAndVideoOutIdByUser(Long userId);

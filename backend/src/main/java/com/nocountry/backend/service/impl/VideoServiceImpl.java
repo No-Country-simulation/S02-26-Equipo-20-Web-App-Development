@@ -137,22 +137,40 @@ public class VideoServiceImpl implements IVideoService {
 
     @Override
     public List<VideoInWithVideoOutIds> getAllVideos(User user) {
+
         List<Object[]> rows = videoInService.getVideoInIdAndVideoOutIdByUser(user.getId());
-        Map<Long, List<Long>> grouped = new LinkedHashMap<>();
+
+        Map<Long, VideoInWithVideoOutIds> grouped = new LinkedHashMap<>();
+
         for (Object[] row : rows) {
             Long videoInId = (Long) row[0];
             Long videoOutId = (Long) row[1];
+            String strategyJson = (String) row[2];
 
-            grouped.computeIfAbsent(videoInId, k -> new ArrayList<>())
-                    .add(videoOutId);
+            grouped.computeIfAbsent(videoInId, id ->
+                    new VideoInWithVideoOutIds(
+                            id,
+                            generateStrategy(strategyJson),
+                            new ArrayList<>()
+                    )
+            ).videoOutIds().add(videoOutId);
         }
-        return grouped.entrySet()
-                .stream()
-                .map(e -> new VideoInWithVideoOutIds(
-                        e.getKey(),
-                        e.getValue()
-                ))
-                .toList();
+
+        return new ArrayList<>(grouped.values());
+    }
+
+    private String generateStrategy(String strategy) {
+        InstructionsVideo iv = objectMapper.readValue(strategy, InstructionsVideo.class);
+        String result;
+        if (iv.withSceneDetector() != null && iv.withSceneDetector()){
+            result = "SceneDetector min: "+ iv.minSceneDuration() + " max: " + iv.maxSceneDuration();
+        } else if (iv.chooseTimes() != null && iv.chooseTimes()) {
+           result = "ChooseTimes " + (iv.joinTimes() != null && iv.joinTimes() ? "join" : "") + " " + iv.vectorTimes() ;
+        }else {
+            result = "Segments: " + iv.numberOfSegments();
+        }
+
+        return result;
     }
 
     @Override
