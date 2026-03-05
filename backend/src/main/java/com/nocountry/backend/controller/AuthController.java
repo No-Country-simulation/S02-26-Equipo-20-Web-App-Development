@@ -1,25 +1,25 @@
 package com.nocountry.backend.controller;
 
+import org.springframework.web.bind.annotation.*;
 import com.nocountry.backend.docs.IStandardApiResponses;
+import com.nocountry.backend.dto.auth.AuthRequest;
+import com.nocountry.backend.dto.auth.AuthResponse;
+import com.nocountry.backend.dto.auth.RegisterRequest;
 import com.nocountry.backend.dto.users.UserResponse;
+import com.nocountry.backend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import com.nocountry.backend.dto.auth.AuthRequest;
-import com.nocountry.backend.dto.auth.AuthResponse;
-import com.nocountry.backend.dto.auth.RegisterRequest;
-import com.nocountry.backend.service.AuthService;
-
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/v1/auth")

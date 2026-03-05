@@ -2,7 +2,7 @@ package com.nocountry.backend.repository;
 
 import java.util.List;
 import java.util.Optional;
-
+import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoState;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,12 +14,11 @@ public interface IVideoInRepository extends JpaRepository<VideoIn, Long> {
     Optional<VideoIn> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);
 
     @Query("""
-    SELECT vi.id, vo.id
+    SELECT vi.id, vo.id, vi.videoInstructions
     FROM VideoOut vo
     JOIN vo.videoIn vi
     JOIN vi.user u
     WHERE u.id = :userId
-      AND vi.deleted = false
       AND vo.deleted = false
 """)
     List<Object[]> findVideoInIdAndVideoOutIdByUser(Long userId);
@@ -29,4 +28,6 @@ public interface IVideoInRepository extends JpaRepository<VideoIn, Long> {
     void updateVideoInDeletedToTrue(String path);
 
     boolean existsByPathAndDeletedFalseAndVideoState(String path, VideoState videoState);
+
+    List<VideoIn> findAllByUserAndVideoState(User user, VideoState videoState);
 }

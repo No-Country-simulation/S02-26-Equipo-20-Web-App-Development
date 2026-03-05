@@ -1,5 +1,6 @@
 package com.nocountry.backend.service.impl;
 
+import com.nocountry.backend.dto.video.JobState;
 import com.nocountry.backend.exception.VideoException;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoIn;
@@ -73,5 +74,13 @@ public class VideoInServiceImpl implements IVideoInService {
     @Override
     public boolean verifyVideoInIsProcessing(String path, VideoState videoState) {
         return videoInRepository.existsByPathAndDeletedFalseAndVideoState(path,videoState);
+    }
+
+    @Override
+    public List<JobState> getAllVideosWithStateProcessing(User user, VideoState videoState) {
+        return videoInRepository.findAllByUserAndVideoState(user,videoState)
+                .stream()
+                .map(videoIn -> new JobState(videoIn.getId(), videoIn.getVideoState(),null))
+                .toList();
     }
 }

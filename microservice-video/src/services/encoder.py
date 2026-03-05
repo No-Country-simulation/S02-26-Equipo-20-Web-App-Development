@@ -1,6 +1,47 @@
 import subprocess
+import platform
 
 ENCODER_CACHE = None
+
+
+def _is_windows():
+    return platform.system() == "Windows"
+
+
+def _check_cuda():
+    """Verifica disponibilidad de CUDA según el SO."""
+    if _is_windows():
+        result = subprocess.run(
+            ["nvidia-smi"],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    else:
+        result = subprocess.run(
+            ["ldconfig", "-p"],
+            capture_output=True,
+            text=True
+        )
+        return "libcuda.so.1" in result.stdout
+
+
+def _check_amf():
+    """Verifica disponibilidad de AMF según el SO."""
+    if _is_windows():
+        result = subprocess.run(
+            ["where", "amf-encoder-demo"],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    else:
+        result = subprocess.run(
+            ["ldconfig", "-p"],
+            capture_output=True,
+            text=True
+        )
+        return "libamf.so" in result.stdout
 
 
 def detect_encoder():
@@ -14,29 +55,12 @@ def detect_encoder():
         capture_output=True,
         text=True
     )
-
     encoders = result.stdout
 
-    # NVENC
-    if "h264_nvenc" in encoders:
-        cuda_check = subprocess.run(
-            ["ldconfig", "-p"], capture_output=True, text=True
-        )
-        if "libcuda.so.1" in cuda_check.stdout:
-            ENCODER_CACHE = "h264_nvenc"
-        else:
-            ENCODER_CACHE = "libx264"
-    # AMF (AMD)
-    elif "h264_amf" in encoders:
-        # opcional: intentar verificar librerías AMD si quieres
-        # si no hay librerías, caer a libx264
-        amf_check = subprocess.run(
-            ["ldconfig", "-p"], capture_output=True, text=True
-        )
-        if "libamf.so" in amf_check.stdout:
-            ENCODER_CACHE = "h264_amf"
-        else:
-            ENCODER_CACHE = "libx264"
+    if "h264_nvenc" in encoders and _check_cuda():
+        ENCODER_CACHE = "h264_nvenc"
+    elif "h264_amf" in encoders and _check_amf():
+        ENCODER_CACHE = "h264_amf"
     else:
         ENCODER_CACHE = "libx264"
 

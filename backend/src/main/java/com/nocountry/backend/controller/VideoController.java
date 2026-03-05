@@ -1,5 +1,6 @@
 package com.nocountry.backend.controller;
 
+import org.springframework.web.bind.annotation.*;
 import com.nocountry.backend.docs.IStandardApiResponses;
 import com.nocountry.backend.dto.video.InstructionsVideo;
 import com.nocountry.backend.dto.video.JobState;
@@ -11,7 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -22,12 +26,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/video")
@@ -41,6 +45,7 @@ public class VideoController implements IStandardApiResponses {
 
     private final IVideoService videoService;
     private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     @PostMapping(
             value = "/process-video",
@@ -52,6 +57,11 @@ public class VideoController implements IStandardApiResponses {
             @AuthenticationPrincipal User user
     ) {
         InstructionsVideo instructions = objectMapper.readValue(instructionsJson, InstructionsVideo.class);
+
+        Set<ConstraintViolation<InstructionsVideo>> violations = validator.validate(instructions);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -82,8 +92,21 @@ public class VideoController implements IStandardApiResponses {
             @ApiResponse(responseCode = "200", description = "Estado del job obtenido correctamente")
     })
     @GetMapping("/job-status/{idJob}")
-    public ResponseEntity<JobState> getJobStatus(@PathVariable("idJob") @Min(1) Long idJob, @AuthenticationPrincipal User user) {
+    public ResponseEntity<JobState> getJobStatusByIdJob(@PathVariable("idJob") @Min(1) Long idJob, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(videoService.getVideoState(idJob, user));
+    }
+
+    @Operation(
+            summary = "Consultar jobs del usuario en estado procesando",
+            description = "Obtiene todos los jobs en estado procesando del usuario autenticado.",
+            security = @SecurityRequirement(name = "cookieAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Recupera todos los jobs con estado procesando con los usuarios")
+    })
+    @GetMapping("/job-status/processing")
+    public ResponseEntity<List<JobState>> getJobsWithStatesProcessing(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(videoService.getJobsProcessing(user));
     }
 
     @Operation(

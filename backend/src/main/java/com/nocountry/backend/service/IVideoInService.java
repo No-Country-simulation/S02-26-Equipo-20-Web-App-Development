@@ -1,5 +1,6 @@
 package com.nocountry.backend.service;
 
+import com.nocountry.backend.dto.video.JobState;
 import com.nocountry.backend.model.User;
 import com.nocountry.backend.model.VideoIn;
 import com.nocountry.backend.model.VideoState;
@@ -20,4 +21,6 @@ public interface IVideoInService {
     void updateVideoInDelete(String path);
 
     boolean verifyVideoInIsProcessing(String path, VideoState videoState);
+
+    List<JobState> getAllVideosWithStateProcessing(User user, VideoState videoState);
 }
