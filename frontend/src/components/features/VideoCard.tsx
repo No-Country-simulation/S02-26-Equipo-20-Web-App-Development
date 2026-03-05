@@ -1,14 +1,44 @@
 import { Link } from 'react-router';
 import type { VideoInWithVideoOutIds } from '@/types/video.types';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, Eye, Loader2, Video } from 'lucide-react';
+import { CheckCircle, Eye, Loader2, Video, Scissors, ScanSearch, Clock } from 'lucide-react';
 
 interface VideoCardProps {
   video: VideoInWithVideoOutIds;
 }
 
+function StrategyBadge({ strategy }: { strategy: string }) {
+  const s = strategy.toLowerCase();
+
+  if (s.startsWith('scenedetector')) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 ring-1 ring-purple-200">
+        <ScanSearch className="h-3 w-3" />
+        Escenas
+      </span>
+    );
+  }
+  if (s.startsWith('choosetimes')) {
+    const hasJoin = s.includes('join');
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+        <Clock className="h-3 w-3" />
+        {hasJoin ? 'Tiempos (fusionado)' : 'Tiempos'}
+      </span>
+    );
+  }
+  const match = strategy.match(/\d+/);
+  const count = match ? match[0] : '?';
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
+      <Scissors className="h-3 w-3" />
+      {count} segmentos
+    </span>
+  );
+}
+
 export function VideoCard({ video }: VideoCardProps) {
-  const { videoInId, videoOutIds } = video;
+  const { videoInId, videoOutIds, strategy } = video;
   const isCompleted = videoOutIds.length > 0;
 
   return (
@@ -19,11 +49,14 @@ export function VideoCard({ video }: VideoCardProps) {
         </div>
         <div className="min-w-0">
           <p className="truncate font-medium text-gray-900">Video #{videoInId}</p>
-          <p className="truncate text-sm text-gray-500">
-            {isCompleted
-              ? `${videoOutIds.length} ${videoOutIds.length === 1 ? 'short' : 'shorts'}`
-              : 'Procesando...'}
-          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <StrategyBadge strategy={strategy} />
+            <span className="text-sm text-gray-500">
+              {isCompleted
+                ? `· ${videoOutIds.length} ${videoOutIds.length === 1 ? 'short' : 'shorts'}`
+                : '· Procesando...'}
+            </span>
+          </div>
         </div>
       </div>
 

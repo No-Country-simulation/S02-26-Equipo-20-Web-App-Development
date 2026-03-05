@@ -1,10 +1,9 @@
-// GET /video/all
 export interface VideoInWithVideoOutIds {
   videoInId: number;
+  strategy: string;
   videoOutIds: number[];
 }
 
-// GET /video/job-status/{id} y POST /video/process-video
 export type VideoState = 'UPLOADED' | 'PROCESSING' | 'FAILED' | 'COMPLETED';
 
 export interface JobState {
@@ -13,9 +12,10 @@ export interface JobState {
   videoOutputsResultIds: number[] | null;
 }
 
-// Body de POST /video/process-video
 export interface InstructionsVideo {
   withSceneDetector: boolean;
+  chooseTimes?: boolean;
+  joinTimes?: boolean;
   isFollowFace: boolean;
   minSceneDuration: number;
   maxSceneDuration: number;

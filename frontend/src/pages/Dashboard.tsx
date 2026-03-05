@@ -16,6 +16,8 @@ import { useRefreshUser } from '@/hooks/useRefreshUser';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
+  chooseTimes: false,
+  joinTimes: false,
   isFollowFace: false,
   minSceneDuration: 5,
   maxSceneDuration: 60,
@@ -170,7 +172,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 md:text-sm">Videos subidos</p>
-              <p className="text-xl font-bold text-gray-900 md:text-2xl">{stats.totalVideos}</p>
+              <p className="text-base font-bold text-gray-900 lg:text-2xl">{stats.totalVideos}</p>
             </div>
           </div>
         </div>
@@ -182,7 +184,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 md:text-sm">Shorts generados</p>
-              <p className="text-xl font-bold text-gray-900 md:text-2xl">{stats.totalShorts}</p>
+              <p className="text-base font-bold text-gray-900 lg:text-2xl">{stats.totalShorts}</p>
             </div>
           </div>
         </div>
@@ -194,8 +196,8 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 md:text-sm">Almacenamiento</p>
-              <p className="text-xl font-bold text-gray-900 md:text-2xl">
-                {formatStorageSize(user?.folderSizeBytes ?? 0)}
+              <p className="text-base font-bold text-gray-900 lg:text-2xl">
+                {formatStorageSize(user?.folderSizeBytes ?? 0)} / 5GB
               </p>
             </div>
           </div>

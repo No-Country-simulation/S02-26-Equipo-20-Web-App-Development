@@ -18,6 +18,8 @@ import { ChevronLeft, RotateCcw, Trash2, X, Loader2 } from 'lucide-react';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
+  chooseTimes: false,
+  joinTimes: false,
   isFollowFace: false,
   minSceneDuration: 5,
   maxSceneDuration: 60,
