@@ -156,14 +156,9 @@ VITE_API_URL=http://localhost:8080/api/v1
 
 | Nombre            | Rol          |
 | ----------------- | ------------ |
-| Eduardo Maravilla | Backend Java |
-| Matías Yurquina   | Backend Java |
+| Eduardo Maravilla | Backend      |
+| Matías Yurquina   | Backend      |
 | Marcos Travaglini | Frontend     |
-
-## 🔗 Links
-
-- 📁 [Repositorio](https://github.com/No-Country-simulation/S02-26-Equipo-20-Web-App-Development)
-- 🚀 Deploy: _próximamente_
 
 ---
 
