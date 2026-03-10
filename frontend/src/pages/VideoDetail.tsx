@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { Button } from '@/components/ui/Button';
@@ -11,11 +10,13 @@ import { useJobPolling } from '@/hooks/useJobPolling';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
-import type { InstructionsVideo, JobState } from '@/types/video.types';
+import type { InstructionsVideo } from '@/types/video.types';
 import { videoService } from '@/api/services/video.service';
 import { useDeleteVideo } from '@/hooks/useDeleteVideo';
-import { ChevronLeft, RotateCcw, Trash2, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react';
 import { storage } from '@/lib/storage';
+import { ProcessingBanner } from '@/components/ui/ProcessingBanner';
+import { Modal } from '@/components/ui/Modal';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
@@ -58,12 +59,12 @@ export default function VideoDetail() {
   useJobPolling({
     idJob: activeJobId,
     enabled: activeJobId !== null,
-    onFinished: (_state: JobState) => {
+    onFinished: () => {
       setActiveJob(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
       toast.success('¡Shorts listos!');
     },
-    onFailed: (_state: JobState) => {
+    onFailed: () => {
       setActiveJob(null);
       toast.error('El reprocesamiento falló');
     },
@@ -210,56 +211,30 @@ export default function VideoDetail() {
         </div>
 
         {/* Banner procesamiento activo */}
-        {activeJobId !== null && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
-            <div>
-              <p className="font-medium text-blue-900">Reprocesando video</p>
-              <p className="text-sm text-blue-700">
-                Esto puede tardar unos minutos. Te avisaremos cuando esté listo.
-              </p>
-            </div>
-          </div>
-        )}
+        {activeJobId !== null && <ProcessingBanner message="Reprocesando video" />}
 
         {/* Shorts */}
         <ShortsGrid videoOutIds={video.videoOutIds} />
 
         {/* Modal reprocess */}
-        {showReprocessModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {/* Header */}
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Reprocesar video</h2>
-                  <p className="text-sm text-gray-500">
-                    Se generarán nuevos shorts con estas opciones
-                  </p>
-                </div>
-                <button
-                  onClick={handleCloseModal}
-                  disabled={isReprocessing}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <VideoProcessingOptions value={instructions} onChange={setInstructions} />
-
-                <Button
-                  variant="primary"
-                  onClick={handleConfirmReprocess}
-                  disabled={isReprocessing}
-                  className="w-full gap-2">
-                  <RotateCcw className="h-5 w-5" />
-                  {isReprocessing ? 'Iniciando...' : 'Generar nuevos shorts'}
-                </Button>
-              </div>
-            </div>
+        <Modal
+          open={showReprocessModal}
+          onClose={handleCloseModal}
+          disabled={isReprocessing}
+          title="Reprocesar video"
+          subtitle="Se generarán nuevos shorts con estas opciones">
+          <div className="space-y-6">
+            <VideoProcessingOptions value={instructions} onChange={setInstructions} />
+            <Button
+              variant="primary"
+              onClick={handleConfirmReprocess}
+              disabled={isReprocessing}
+              className="w-full gap-2">
+              <RotateCcw className="h-5 w-5" />
+              {isReprocessing ? 'Iniciando...' : 'Generar nuevos shorts'}
+            </Button>
           </div>
-        )}
+        </Modal>
       </div>
     </div>
   );

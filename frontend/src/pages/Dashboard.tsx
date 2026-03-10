@@ -5,15 +5,15 @@ import { useUploadVideo } from '@/hooks/useUploadVideo';
 import { useJobPolling } from '@/hooks/useJobPolling';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
-import { VideoUpload } from '@/components/features/VideoUpload';
 import { VideoList } from '@/components/features/VideoList';
 import { queryKeys } from '@/lib/queryClient';
 import { toast } from 'sonner';
 import type { InstructionsVideo } from '@/types/video.types';
-import { VideoProcessingOptions } from '@/components/features/VideoProcessingOptions';
-import { Plus, Video, Clapperboard, Database, X, ChevronLeft, Loader2, Upload } from 'lucide-react';
+import { Plus, Video, Clapperboard, Database } from 'lucide-react';
 import { useRefreshUser } from '@/hooks/useRefreshUser';
 import { useActiveJobs } from '@/hooks/useActiveJobs';
+import { UploadModal } from '@/components/features/UploadModal';
+import { ProcessingBanner } from '@/components/ui/ProcessingBanner';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
@@ -183,98 +183,22 @@ export default function Dashboard() {
       </div>
 
       {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90dvh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {uploadStep === 'options' && (
-                  <button
-                    onClick={() => setUploadStep('file')}
-                    disabled={isUploading}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                )}
-                <div>
-                  <h2 className="text-sm font-bold text-gray-900 sm:text-lg md:text-xl">
-                    {uploadStep === 'file' ? 'Subir video' : 'Opciones de procesamiento'}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Paso {uploadStep === 'file' ? '1' : '2'} de 2
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCloseModal}
-                disabled={isUploading}
-                className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="mb-6 flex items-center gap-2">
-              <div className="h-1.5 flex-1 rounded-full bg-blue-500" />
-              <div
-                className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  uploadStep === 'options' ? 'bg-blue-500' : 'bg-gray-200'
-                }`}
-              />
-            </div>
-
-            {uploadStep === 'file' ? (
-              <VideoUpload onUpload={handleFileSelected} isUploading={false} uploadProgress={0} />
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-                  <Video className="h-5 w-5 shrink-0 text-blue-600" />
-                  <span className="min-w-0 truncate text-sm font-medium text-gray-700">
-                    {selectedFile?.name}
-                  </span>
-                </div>
-
-                <VideoProcessingOptions value={instructions} onChange={setInstructions} />
-
-                {isUploading ? (
-                  <div className="space-y-2">
-                    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-center text-sm text-gray-600">
-                      Subiendo... {uploadProgress}%
-                    </p>
-                  </div>
-                ) : (
-                  <Button variant="primary" onClick={handleConfirmUpload} className="w-full gap-2">
-                    <Upload className="h-5 w-5" />
-                    Generar shorts
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <UploadModal
+        open={showUploadModal}
+        onClose={handleCloseModal}
+        isUploading={isUploading}
+        uploadProgress={uploadProgress}
+        uploadStep={uploadStep}
+        selectedFile={selectedFile}
+        instructions={instructions}
+        onStepBack={() => setUploadStep('file')}
+        onFileSelected={handleFileSelected}
+        onInstructionsChange={setInstructions}
+        onConfirm={handleConfirmUpload}
+      />
 
       {/* Banner procesamiento activo */}
-      {activeJobIds.length > 0 && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
-          <div>
-            <p className="font-medium text-blue-900">
-              {activeJobIds.length === 1
-                ? 'Procesando tu video'
-                : `Procesando videos (${activeJobIds.length} en cola)`}
-            </p>
-            <p className="text-sm text-blue-700">
-              Esto puede tardar unos minutos. Te avisaremos cuando estén listos.
-            </p>
-          </div>
-        </div>
-      )}
+      {activeJobIds.length > 0 && <ProcessingBanner count={activeJobIds.length} />}
 
       {/* Video List */}
       <VideoList videos={videos} isLoading={isLoading} onUpload={() => setShowUploadModal(true)} />
