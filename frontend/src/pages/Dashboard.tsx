@@ -13,6 +13,7 @@ import type { InstructionsVideo } from '@/types/video.types';
 import { VideoProcessingOptions } from '@/components/features/VideoProcessingOptions';
 import { Plus, Video, Clapperboard, Database, X, ChevronLeft, Loader2, Upload } from 'lucide-react';
 import { useRefreshUser } from '@/hooks/useRefreshUser';
+import { useActiveJobs } from '@/hooks/useActiveJobs';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
@@ -57,36 +58,13 @@ export default function Dashboard() {
   const { mutate: uploadVideo, isPending: isUploading } = useUploadVideo();
 
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [activeJobIds, setActiveJobIds] = useState<number[]>(() => {
-    const stored = localStorage.getItem('activeJobIds');
-    return stored ? JSON.parse(stored) : [];
-  });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadStep, setUploadStep] = useState<'file' | 'options'>('file');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
 
+  const { activeJobIds, addJob, removeJob } = useActiveJobs();
   const refreshUser = useRefreshUser();
-
-  const addActiveJob = (id: number) => {
-    setActiveJobIds((prev) => {
-      const next = [...prev, id];
-      localStorage.setItem('activeJobIds', JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const removeActiveJob = (id: number) => {
-    setActiveJobIds((prev) => {
-      const next = prev.filter((j) => j !== id);
-      if (next.length === 0) {
-        localStorage.removeItem('activeJobIds');
-      } else {
-        localStorage.setItem('activeJobIds', JSON.stringify(next));
-      }
-      return next;
-    });
-  };
 
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
@@ -99,7 +77,7 @@ export default function Dashboard() {
       { file: selectedFile, instructions, onProgress: setUploadProgress },
       {
         onSuccess: (jobState) => {
-          addActiveJob(jobState.idJob);
+          addJob(jobState.idJob);
           setShowUploadModal(false);
           setUploadStep('file');
           setSelectedFile(null);
@@ -131,13 +109,13 @@ export default function Dashboard() {
           key={jobId}
           jobId={jobId}
           onFinished={(id) => {
-            removeActiveJob(id);
+            removeJob(id);
             queryClient.invalidateQueries({ queryKey: queryKeys.videos.list() });
             refreshUser();
             toast.success('¡Shorts listos!');
           }}
           onFailed={(id) => {
-            removeActiveJob(id);
+            removeJob(id);
             toast.error('El procesamiento falló');
           }}
         />

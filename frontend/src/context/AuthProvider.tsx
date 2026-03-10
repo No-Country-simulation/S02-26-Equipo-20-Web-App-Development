@@ -4,6 +4,7 @@ import type { User } from '@/types/user.types';
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types';
 import { AuthContext } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { storage } from '@/lib/storage';
 
 /**
  * Estado del contexto de autenticación
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     await authService.logout();
     queryClient.clear(); // limpia todo el caché
-    localStorage.removeItem('activeJobIds');
+    storage.clearAll();
     setUser(null);
   };
 

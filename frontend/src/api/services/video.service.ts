@@ -88,4 +88,9 @@ export const videoService = {
     );
     return response.data;
   },
+
+  async getProcessingJobs(): Promise<JobState[]> {
+    const response = await api.get<JobState[]>(API_ENDPOINTS.VIDEOS.PROCESSING_JOBS);
+    return response.data;
+  },
 };

@@ -15,6 +15,7 @@ import type { InstructionsVideo, JobState } from '@/types/video.types';
 import { videoService } from '@/api/services/video.service';
 import { useDeleteVideo } from '@/hooks/useDeleteVideo';
 import { ChevronLeft, RotateCcw, Trash2, X, Loader2 } from 'lucide-react';
+import { storage } from '@/lib/storage';
 
 const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
   withSceneDetector: false,
@@ -34,10 +35,9 @@ export default function VideoDetail() {
 
   const [showReprocessModal, setShowReprocessModal] = useState(false);
   const [instructions, setInstructions] = useState<InstructionsVideo>(DEFAULT_INSTRUCTIONS);
-  const [activeJobId, setActiveJobId] = useState<number | null>(() => {
-    const stored = localStorage.getItem(`reprocessJobId:${id}`);
-    return stored ? Number(stored) : null;
-  });
+  const [activeJobId, setActiveJobId] = useState<number | null>(() =>
+    storage.getReprocessJob(id ?? ''),
+  );
   const [videoDeleted, setVideoDeleted] = useState(false);
   const [confirmDeleteVideo, setConfirmDeleteVideo] = useState(false);
   const { mutate: deleteVideo, isPending: isDeletingVideo } = useDeleteVideo();
@@ -49,9 +49,9 @@ export default function VideoDetail() {
   const setActiveJob = (jobId: number | null) => {
     setActiveJobId(jobId);
     if (jobId === null) {
-      localStorage.removeItem(`reprocessJobId:${id}`);
+      storage.clearReprocessJob(id ?? '');
     } else {
-      localStorage.setItem(`reprocessJobId:${id}`, String(jobId));
+      storage.setReprocessJob(id ?? '', jobId);
     }
   };
 
