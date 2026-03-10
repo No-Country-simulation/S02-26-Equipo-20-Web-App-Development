@@ -5,6 +5,8 @@ import type { LoginRequest, RegisterRequest } from '@/types/auth.types';
 import { AuthContext } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { storage } from '@/lib/storage';
+import { useNavigate } from 'react-router';
+import { authEvents, UNAUTHORIZED_EVENT } from '@/lib/authEvents';
 
 /**
  * Estado del contexto de autenticación
@@ -27,6 +29,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handler = () => {
+      queryClient.clear();
+      storage.clearAll();
+      setUser(null);
+      navigate('/login');
+    };
+
+    authEvents.addEventListener(UNAUTHORIZED_EVENT, handler);
+    return () => authEvents.removeEventListener(UNAUTHORIZED_EVENT, handler);
+  }, [navigate, queryClient]);
 
   useEffect(() => {
     const initAuth = async () => {

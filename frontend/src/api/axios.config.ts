@@ -1,3 +1,4 @@
+import { dispatchUnauthorized } from '@/lib/authEvents';
 import axios, { AxiosError } from 'axios';
 
 // Obtener URL base desde variables de entorno
@@ -31,15 +32,14 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           if (!isAuthCheck && !isOnAuthPage) {
-            window.location.href = '/login';
+            dispatchUnauthorized();
           }
           break;
-        case 403: {
+        case 403:
           if (!isAuthCheck && !isRegister && !isOnAuthPage) {
-            window.location.href = '/login';
+            dispatchUnauthorized();
           }
           break;
-        }
         case 404:
           console.error('Recurso no encontrado');
           break;

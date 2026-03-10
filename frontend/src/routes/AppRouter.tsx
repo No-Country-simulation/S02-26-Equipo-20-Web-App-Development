@@ -10,6 +10,7 @@ import Dashboard from '@/pages/Dashboard';
 import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 import VideoDetail from '@/pages/VideoDetail';
+import ErrorPage from '@/pages/ErrorPage';
 
 /**
  * Configuración de rutas de la aplicación
@@ -18,45 +19,20 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
+    errorElement: <ErrorPage />,
     children: [
-      // Rutas públicas
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'register',
-        element: <Register />,
-      },
-
-      // Rutas privadas (requieren autenticación)
+      { index: true, element: <Home /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
       {
         element: <PrivateRoute />,
         children: [
-          {
-            path: 'dashboard',
-            element: <Dashboard />,
-          },
-          {
-            path: 'profile',
-            element: <Profile />,
-          },
-          {
-            path: 'videos/:id',
-            element: <VideoDetail />,
-          },
+          { path: 'dashboard', element: <Dashboard /> },
+          { path: 'profile', element: <Profile /> },
+          { path: 'videos/:id', element: <VideoDetail /> },
         ],
       },
-
-      // Ruta 404
-      {
-        path: '*',
-        element: <NotFound />,
-      },
+      { path: '*', element: <NotFound /> },
     ],
   },
 ]);

@@ -5,16 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 /**
  * Componente para proteger rutas privadas
  * Solo usuarios autenticados pueden acceder
- *
- * @example
- * // En el router:
- * {
- *   element: <PrivateRoute />,
- *   children: [
- *     { path: 'dashboard', element: <Dashboard /> },
- *     { path: 'profile', element: <Profile /> },
- *   ]
- * }
  */
 export function PrivateRoute() {
   const { isAuthenticated, isLoading } = useAuth();

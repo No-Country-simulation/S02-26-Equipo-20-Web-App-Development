@@ -1,5 +1,4 @@
 import { QueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 
 /**
  * Configuración global de TanStack Query
@@ -28,17 +27,6 @@ export const queryClient = new QueryClient({
 
       // No refetch automático al montar
       refetchOnMount: false,
-    },
-    mutations: {
-      // Configuración para mutations
-      retry: 0, // No reintentar mutations por defecto
-
-      // Handler global de errores para mutations
-      onError: (error) => {
-        const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error inesperado';
-
-        toast.error(errorMessage);
-      },
     },
   },
 });
