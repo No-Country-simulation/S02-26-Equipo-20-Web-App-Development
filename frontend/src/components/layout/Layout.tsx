@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { Header } from './Header';
 import { Footer } from './Footer';
@@ -40,6 +40,9 @@ export function Layout() {
           duration: 4000,
         }}
       />
+
+      {/* Scroll reset en cada navegación, restaura posición al usar el botón atrás */}
+      <ScrollRestoration />
     </div>
   );
 }
