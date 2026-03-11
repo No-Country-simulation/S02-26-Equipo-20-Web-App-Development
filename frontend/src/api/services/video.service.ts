@@ -1,6 +1,7 @@
 import type { InstructionsVideo, JobState, VideoInWithVideoOutIds } from '@/types/video.types';
 import api from '../axios.config';
 import { API_ENDPOINTS } from '../endpoints';
+import { env } from '@/config/env';
 
 export const videoService = {
   async uploadVideo(
@@ -36,12 +37,12 @@ export const videoService = {
   },
 
   getStreamUrl(videoOutputId: number): string {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+    const base = env.apiUrl;
     return `${base}${API_ENDPOINTS.VIDEOS.STREAM(String(videoOutputId))}`;
   },
 
   getStreamInputUrl(videoInputId: number): string {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+    const base = env.apiUrl;
     return `${base}${API_ENDPOINTS.VIDEOS.STREAM_INPUT(String(videoInputId))}`;
   },
 

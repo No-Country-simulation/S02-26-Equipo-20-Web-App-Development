@@ -11,6 +11,8 @@ import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 import VideoDetail from '@/pages/VideoDetail';
 import ErrorPage from '@/pages/ErrorPage';
+import { AuthProvider } from '@/context/AuthProvider';
+import { PublicRoute } from './PublicRoute';
 
 /**
  * Configuración de rutas de la aplicación
@@ -18,12 +20,21 @@ import ErrorPage from '@/pages/ErrorPage';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    element: (
+      <AuthProvider>
+        <Layout />
+      </AuthProvider>
+    ),
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'login', element: <Login /> },
-      { path: 'register', element: <Register /> },
+      {
+        element: <PublicRoute />,
+        children: [
+          { path: 'login', element: <Login /> },
+          { path: 'register', element: <Register /> },
+        ],
+      },
       {
         element: <PrivateRoute />,
         children: [

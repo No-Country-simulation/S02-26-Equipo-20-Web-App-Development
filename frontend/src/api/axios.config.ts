@@ -1,8 +1,8 @@
+import { env } from '@/config/env';
 import { dispatchUnauthorized } from '@/lib/authEvents';
 import axios, { AxiosError } from 'axios';
 
-// Obtener URL base desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_URL = env.apiUrl;
 
 /**
  * Instancia de axios configurada para autenticación con cookies

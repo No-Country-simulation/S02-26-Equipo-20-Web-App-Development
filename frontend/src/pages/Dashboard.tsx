@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideos } from '@/hooks/useVideos';
 import { useUploadVideo } from '@/hooks/useUploadVideo';
-import { useJobPolling } from '@/hooks/useJobPolling';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { VideoList } from '@/components/features/VideoList';
@@ -14,42 +13,9 @@ import { useRefreshUser } from '@/hooks/useRefreshUser';
 import { useActiveJobs } from '@/hooks/useActiveJobs';
 import { UploadModal } from '@/components/features/UploadModal';
 import { ProcessingBanner } from '@/components/ui/ProcessingBanner';
-
-const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
-  withSceneDetector: false,
-  chooseTimes: false,
-  joinTimes: false,
-  isFollowFace: false,
-  minSceneDuration: 5,
-  maxSceneDuration: 60,
-  numberOfSegments: 3,
-  vectorTimes: undefined,
-};
-
-function formatStorageSize(bytes: number): string {
-  if (bytes === 0) return '0 MB';
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-function JobPoller({
-  jobId,
-  onFinished,
-  onFailed,
-}: {
-  jobId: number;
-  onFinished: (id: number) => void;
-  onFailed: (id: number) => void;
-}) {
-  useJobPolling({
-    idJob: jobId,
-    enabled: true,
-    onFinished: () => onFinished(jobId),
-    onFailed: () => onFailed(jobId),
-  });
-  return null;
-}
+import { formatStorageSize } from '@/utils/format';
+import { DEFAULT_INSTRUCTIONS } from '@/constants/video';
+import { JobPoller } from '@/components/features/JobPoller';
 
 export default function Dashboard() {
   const { user } = useAuth();

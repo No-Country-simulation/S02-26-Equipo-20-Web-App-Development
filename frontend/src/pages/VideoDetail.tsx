@@ -17,17 +17,7 @@ import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react';
 import { storage } from '@/lib/storage';
 import { ProcessingBanner } from '@/components/ui/ProcessingBanner';
 import { Modal } from '@/components/ui/Modal';
-
-const DEFAULT_INSTRUCTIONS: InstructionsVideo = {
-  withSceneDetector: false,
-  chooseTimes: false,
-  joinTimes: false,
-  isFollowFace: false,
-  minSceneDuration: 5,
-  maxSceneDuration: 60,
-  numberOfSegments: 3,
-  vectorTimes: undefined,
-};
+import { DEFAULT_INSTRUCTIONS } from '@/constants/video';
 
 export default function VideoDetail() {
   const { id } = useParams<{ id: string }>();
