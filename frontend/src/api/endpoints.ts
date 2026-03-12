@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
     DOWNLOAD_INPUT: (videoInputId: string) => `/video/input/${videoInputId}/download`,
     DELETE_INPUT: (videoInputId: string) => `/video/input/${videoInputId}`,
     DELETE_OUTPUT: (videoOutputId: string) => `/video/output/${videoOutputId}`,
+    PROCESSING_JOBS: '/video/job-status/processing',
   },
 } as const;
 

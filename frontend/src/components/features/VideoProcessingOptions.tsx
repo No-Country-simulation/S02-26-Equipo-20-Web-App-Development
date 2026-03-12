@@ -177,10 +177,11 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
           </p>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label htmlFor="vectorTimes" className="mb-1.5 block text-sm font-medium text-gray-700">
               Intervalos a recortar
             </label>
             <input
+              id="vectorTimes"
               type="text"
               placeholder="0:10-1:30, 2:00-3:15"
               value={value.vectorTimes ?? ''}
@@ -201,9 +202,10 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
             )}
           </div>
 
-          <label className="flex cursor-pointer items-center gap-3">
+          <label htmlFor="joinTimes" className="flex cursor-pointer items-center gap-3">
             <div className="relative">
               <input
+                id="joinTimes"
                 type="checkbox"
                 className="sr-only"
                 checked={value.joinTimes ?? false}
