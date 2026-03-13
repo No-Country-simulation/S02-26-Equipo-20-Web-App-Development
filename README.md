@@ -162,11 +162,6 @@ VITE_API_URL=http://localhost:8080/api/v1
 | Matías Yurquina   | Backend  |
 | Marcos Travaglini | Frontend |
 
-## 🔗 Links
-
-- 📁 [Repositorio](https://github.com/No-Country-simulation/S02-26-Equipo-20-Web-App-Development)
-- 🚀 Deploy: _próximamente_
-
 ---
 
 *Proyecto desarrollado en el marco de la simulación NoCountry — S02-26*
