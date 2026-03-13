@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Download, Trash2, X, Play } from 'lucide-react';
+import { Download, Trash2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { videoService } from '@/api/services/video.service';
 import { useDeleteShort } from '@/hooks/useDeleteShort';
 import { toast } from 'sonner';
@@ -38,6 +38,29 @@ export function ShortCard({ videoOutputId, index }: ShortCardProps) {
       },
     });
   };
+
+  const modalHeader = (
+    <div className="mb-4 flex items-center justify-between">
+      <span className="text-sm font-medium text-white">Short #{index + 1}</span>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="gap-1.5 border-white/30 text-white hover:bg-white/10">
+          <Download className="h-4 w-4" />
+          {isDownloading ? 'Descargando...' : 'Descargar'}
+        </Button>
+        <button
+          onClick={() => setConfirmDelete(true)}
+          className="rounded-lg p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-red-400"
+          title="Eliminar short">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -98,51 +121,16 @@ export function ShortCard({ videoOutputId, index }: ShortCardProps) {
         </div>
       </div>
 
-      {showModal &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-            onClick={() => setShowModal(false)}>
-            <div
-              className="relative flex h-full max-h-[80dvh] w-full max-w-sm flex-col"
-              onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setShowModal(false)}
-                className="absolute -top-10 right-0 text-white/80 hover:text-white">
-                <X className="h-8 w-8" />
-              </button>
-              <video
-                src={streamUrl}
-                className="h-full w-full rounded-xl object-contain"
-                controls
-                autoPlay
-                playsInline
-                onClick={(e) => e.stopPropagation()}
-              />
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-white">Short #{index + 1}</span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownload}
-                    disabled={isDownloading}
-                    className="gap-1.5 border-white/30 text-white hover:bg-white/10">
-                    <Download className="h-4 w-4" />
-                    {isDownloading ? 'Descargando...' : 'Descargar'}
-                  </Button>
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    className="rounded-lg p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-red-400"
-                    title="Eliminar short">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      <Modal open={showModal} onClose={() => setShowModal(false)} header={modalHeader}>
+        <video
+          src={streamUrl}
+          className="w-full rounded-xl object-contain"
+          style={{ maxHeight: '70dvh' }}
+          controls
+          autoPlay
+          playsInline
+        />
+      </Modal>
     </>
   );
 }

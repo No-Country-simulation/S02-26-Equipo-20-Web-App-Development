@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import type { VideoInWithVideoOutIds } from '@/types/video.types';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, Eye, Loader2, Video, Scissors, ScanSearch, Clock } from 'lucide-react';
+import { Eye, Video, Scissors, ScanSearch, Clock } from 'lucide-react';
 
 interface VideoCardProps {
   video: VideoInWithVideoOutIds;
@@ -61,24 +61,13 @@ export function VideoCard({ video }: VideoCardProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        {isCompleted ? (
-          <>
-            <span className="hidden items-center gap-1.5 rounded-full border border-green-200 bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800 sm:inline-flex">
-              <CheckCircle className="h-3.5 w-3.5" />
-              Completado
-            </span>
-            <Link to={`/videos/${videoInId}`}>
-              <Button variant="primary" size="sm" className="gap-1.5">
-                <Eye className="h-4 w-4" />
-                <span className="hidden sm:inline">Ver shorts</span>
-              </Button>
-            </Link>
-          </>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Procesando
-          </span>
+        {isCompleted && (
+          <Link to={`/videos/${videoInId}`}>
+            <Button variant="primary" size="sm" className="gap-1.5">
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Ver shorts</span>
+            </Button>
+          </Link>
         )}
       </div>
     </div>

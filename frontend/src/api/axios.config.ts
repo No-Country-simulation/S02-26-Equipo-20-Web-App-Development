@@ -41,20 +41,11 @@ api.interceptors.response.use(
           }
           break;
         case 404:
-          console.error('Recurso no encontrado');
-          break;
         case 500:
-          console.error('Error del servidor');
-          break;
         default:
           console.error('Error en la petición:', error.response.data);
       }
-    } else if (error.request) {
-      console.error('No se recibió respuesta del servidor');
-    } else {
-      console.error('Error al configurar la petición:', error.message);
     }
-
     return Promise.reject(error);
   },
 );

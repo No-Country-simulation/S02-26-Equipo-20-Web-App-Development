@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideos } from '@/hooks/useVideos';
 import { useUploadVideo } from '@/hooks/useUploadVideo';
@@ -62,10 +62,13 @@ export default function Dashboard() {
     setInstructions(DEFAULT_INSTRUCTIONS);
   };
 
-  const stats = {
-    totalVideos: videos.length,
-    totalShorts: videos.reduce((acc, v) => acc + v.videoOutIds.length, 0),
-  };
+  const stats = useMemo(
+    () => ({
+      totalVideos: videos.length,
+      totalShorts: videos.reduce((acc, v) => acc + v.videoOutIds.length, 0),
+    }),
+    [videos],
+  );
 
   return (
     <div className="container mx-auto bg-gray-50 px-4 py-8 md:py-14">
