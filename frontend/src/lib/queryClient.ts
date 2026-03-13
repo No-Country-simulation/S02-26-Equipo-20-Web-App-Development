@@ -25,8 +25,8 @@ export const queryClient = new QueryClient({
       // No refetch automático al reconectar
       refetchOnReconnect: false,
 
-      // No refetch automático al montar
-      refetchOnMount: false,
+      // Refetch al montar si los datos son stale (más de 5 min)
+      // refetchOnMount: false
     },
   },
 });

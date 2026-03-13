@@ -1,4 +1,4 @@
-import { Video, ChevronLeft, Upload } from 'lucide-react';
+import { X, Video, ChevronLeft, Upload } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { VideoUpload } from '@/components/features/VideoUpload';
 import { VideoProcessingOptions } from '@/components/features/VideoProcessingOptions';
@@ -32,10 +32,9 @@ export function UploadModal({
   onInstructionsChange,
   onConfirm,
 }: UploadModalProps) {
-  return (
-    <Modal open={open} onClose={onClose} disabled={isUploading} title="" subtitle="">
-      {/* Header con pasos — sobreescribe el title del Modal con layout propio */}
-      <div className="-mt-6 mb-6 flex items-center justify-between">
+  const header = (
+    <div className="mb-6">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {uploadStep === 'options' && (
             <button
@@ -52,10 +51,16 @@ export function UploadModal({
             <p className="text-sm text-gray-500">Paso {uploadStep === 'file' ? '1' : '2'} de 2</p>
           </div>
         </div>
+        <button
+          onClick={onClose}
+          disabled={isUploading}
+          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50">
+          <X className="h-6 w-6" />
+        </button>
       </div>
 
       {/* Barra de progreso de pasos */}
-      <div className="mb-6 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <div className="h-1.5 flex-1 rounded-full bg-blue-500" />
         <div
           className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -63,7 +68,11 @@ export function UploadModal({
           }`}
         />
       </div>
+    </div>
+  );
 
+  return (
+    <Modal open={open} onClose={onClose} disabled={isUploading} header={header}>
       {uploadStep === 'file' ? (
         <VideoUpload onUpload={onFileSelected} isUploading={false} uploadProgress={0} />
       ) : (

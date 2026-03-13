@@ -75,6 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     queryClient.clear(); // limpia todo el caché
     storage.clearAll();
     setUser(null);
+    navigate('/login');
   };
 
   const updateUser = (updatedUser: User) => {
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user?.id,
     isLoading,
     login,
     register,
