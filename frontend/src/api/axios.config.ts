@@ -1,7 +1,8 @@
+import { env } from '@/config/env';
+import { dispatchUnauthorized } from '@/lib/authEvents';
 import axios, { AxiosError } from 'axios';
 
-// Obtener URL base desde variables de entorno
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_URL = env.apiUrl;
 
 /**
  * Instancia de axios configurada para autenticación con cookies
@@ -31,30 +32,20 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           if (!isAuthCheck && !isOnAuthPage) {
-            window.location.href = '/login';
+            dispatchUnauthorized();
           }
           break;
-        case 403: {
+        case 403:
           if (!isAuthCheck && !isRegister && !isOnAuthPage) {
-            window.location.href = '/login';
+            dispatchUnauthorized();
           }
           break;
-        }
         case 404:
-          console.error('Recurso no encontrado');
-          break;
         case 500:
-          console.error('Error del servidor');
-          break;
         default:
           console.error('Error en la petición:', error.response.data);
       }
-    } else if (error.request) {
-      console.error('No se recibió respuesta del servidor');
-    } else {
-      console.error('Error al configurar la petición:', error.message);
     }
-
     return Promise.reject(error);
   },
 );

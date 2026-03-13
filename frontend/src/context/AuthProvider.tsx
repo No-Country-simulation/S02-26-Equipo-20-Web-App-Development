@@ -4,6 +4,9 @@ import type { User } from '@/types/user.types';
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types';
 import { AuthContext } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { storage } from '@/lib/storage';
+import { useNavigate } from 'react-router';
+import { authEvents, UNAUTHORIZED_EVENT } from '@/lib/authEvents';
 
 /**
  * Estado del contexto de autenticación
@@ -26,6 +29,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handler = () => {
+      queryClient.clear();
+      storage.clearAll();
+      setUser(null);
+      navigate('/login');
+    };
+
+    authEvents.addEventListener(UNAUTHORIZED_EVENT, handler);
+    return () => authEvents.removeEventListener(UNAUTHORIZED_EVENT, handler);
+  }, [navigate, queryClient]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -57,8 +73,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     await authService.logout();
     queryClient.clear(); // limpia todo el caché
-    localStorage.removeItem('activeJobIds');
+    storage.clearAll();
     setUser(null);
+    navigate('/login');
   };
 
   const updateUser = (updatedUser: User) => {
@@ -67,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user?.id,
     isLoading,
     login,
     register,

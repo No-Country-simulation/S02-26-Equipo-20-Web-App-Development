@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { getErrorMessage } from '@/api/axios.config';
 import type { LoginRequest } from '@/types/auth.types';
 import { useAuth } from './useAuth';
+import { AxiosError } from 'axios';
 
 /**
  * Hook para login de usuario
@@ -20,8 +21,7 @@ export function useLogin() {
       navigate('/dashboard');
     },
     onError: (error) => {
-      const err = error as { response?: { status?: number } };
-      if (err.response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         toast.error('Email o contraseña incorrectos');
       } else {
         toast.error(getErrorMessage(error));

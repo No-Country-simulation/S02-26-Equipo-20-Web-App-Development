@@ -32,13 +32,15 @@ El sistema detecta las escenas más relevantes del video original, recorta y ada
 | Axios           | —       | HTTP client     |
 
 ### Backend Java
-| Tecnología      | Versión | Uso               |
-| --------------- | ------- | ----------------- |
-| Spring Boot     | 4.0     | API REST          |
-| Spring Security | —       | Autenticación JWT |
-| Spring Data JPA | —       | ORM               |
-| PostgreSQL      | —       | Base de datos     |
-| Redis Streams   | —       | Cola de mensajes  |
+| Tecnología        | Versión | Uso                   |
+| ----------------- | ------- | --------------------- |
+| Spring Boot       | 4.0.3   | API REST              |
+| Spring Security   | —       | Autenticación JWT     |
+| Spring Data JPA   | —       | ORM                   |
+| PostgreSQL        | —       | Base de datos         |
+| Redis Streams     | —       | Cola de mensajes      |
+| Lombok            | —       | Reducción boilerplate |
+| springdoc-openapi | 3.0.1   | Swagger UI / API docs |
 
 ### Microservicio Python
 | Tecnología       | Uso                            |
@@ -154,11 +156,11 @@ VITE_API_URL=http://localhost:8080/api/v1
 
 ## 👥 Equipo
 
-| Nombre            | Rol          |
-| ----------------- | ------------ |
-| Eduardo Maravilla | Backend      |
-| Matías Yurquina   | Backend      |
-| Marcos Travaglini | Frontend     |
+| Nombre            | Rol      |
+| ----------------- | -------- |
+| Eduardo Maravilla | Backend  |
+| Matías Yurquina   | Backend  |
+| Marcos Travaglini | Frontend |
 
 ---
 

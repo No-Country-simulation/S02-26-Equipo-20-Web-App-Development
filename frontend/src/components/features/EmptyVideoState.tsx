@@ -19,7 +19,7 @@ export function EmptyVideoState({
             <div className="relative rounded-full bg-linear-to-br from-blue-100 to-purple-100 p-8">
               <Video className="h-16 w-16 text-blue-600" strokeWidth={1.5} />
               <div className="absolute -top-2 -right-2 h-4 w-4 animate-bounce rounded-full bg-purple-400" />
-              <div className="animation-delay-150 absolute -bottom-1 -left-1 h-3 w-3 animate-bounce rounded-full bg-blue-400" />
+              <div className="absolute -bottom-1 -left-1 h-3 w-3 animate-bounce rounded-full bg-blue-400" />
             </div>
           </div>
         </div>

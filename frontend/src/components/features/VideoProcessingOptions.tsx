@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { InstructionsVideo } from '@/types/video.types';
+import { Toggle } from '../ui/Toggle';
 
 interface VideoProcessingOptionsProps {
   value: InstructionsVideo;
@@ -177,10 +178,11 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
           </p>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label htmlFor="vectorTimes" className="mb-1.5 block text-sm font-medium text-gray-700">
               Intervalos a recortar
             </label>
             <input
+              id="vectorTimes"
               type="text"
               placeholder="0:10-1:30, 2:00-3:15"
               value={value.vectorTimes ?? ''}
@@ -201,32 +203,13 @@ export function VideoProcessingOptions({ value, onChange }: VideoProcessingOptio
             )}
           </div>
 
-          <label className="flex cursor-pointer items-center gap-3">
-            <div className="relative">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={value.joinTimes ?? false}
-                onChange={(e) => update({ joinTimes: e.target.checked })}
-              />
-              <div
-                className={`h-5 w-9 rounded-full transition-colors ${
-                  value.joinTimes ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
-              />
-              <div
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                  value.joinTimes ? 'translate-x-4' : 'translate-x-0.5'
-                }`}
-              />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700">Fusionar intervalos solapados</p>
-              <p className="text-xs text-gray-400">
-                Si dos rangos se superponen, se unen automáticamente.
-              </p>
-            </div>
-          </label>
+          <Toggle
+            id="joinTimes"
+            checked={value.joinTimes ?? false}
+            onChange={(checked) => update({ joinTimes: checked })}
+            label="Fusionar intervalos solapados"
+            description="Si dos rangos se superponen, se unen automáticamente."
+          />
         </div>
       )}
     </div>
