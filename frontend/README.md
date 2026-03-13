@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# ClipFlow — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web de ClipFlow, construida con React 19 y TypeScript. Permite subir videos horizontales, configurar opciones de procesamiento y descargar los shorts verticales generados.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Tecnología      | Versión | Uso                         |
+| --------------- | ------- | --------------------------- |
+| React           | 19      | UI                          |
+| TypeScript      | 5       | Tipado estático             |
+| Vite            | 7       | Bundler y dev server        |
+| Tailwind CSS    | v4      | Estilos                     |
+| TanStack Query  | v5      | Server state y caché        |
+| React Router    | v7      | Routing                     |
+| React Hook Form | —       | Formularios                 |
+| Zod             | —       | Validación de esquemas      |
+| Axios           | —       | HTTP client con interceptor |
+| Sonner          | —       | Notificaciones toast        |
+| Lucide React    | —       | Íconos                      |
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- Backend corriendo en `http://localhost:8080`
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Instalación
+```bash
+cd frontend
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Variables de entorno
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Crear un archivo `.env` en la raíz del frontend:
 ```
+VITE_API_URL=http://localhost:8080/api/v1
+```
+
+> La app valida esta variable al iniciar y falla en desarrollo si no está definida.
+
+## Desarrollo
+```bash
+npm run dev
+```
+
+La app estará disponible en `http://localhost:5173`.
+
+## Build
+```bash
+npm run build
+```
+
+El output se genera en `dist/`.
+
+## Estructura del proyecto
+```
+src/
+  api/               → Configuración de Axios y endpoints centralizados
+  components/
+    features/        → Componentes de dominio (VideoCard, UploadModal, JobPoller...)
+    layout/          → Header, Footer, Layout
+    ui/              → Componentes base reutilizables (Button, Input, Modal...)
+  config/            → Validación de variables de entorno
+  constants/         → Constantes de dominio
+  context/           → AuthContext y AuthProvider
+  hooks/             → Custom hooks (autenticación, videos, jobs, polling...)
+  lib/               → Utilidades internas (queryClient, storage, authEvents)
+  pages/             → Vistas por ruta
+  routes/            → AppRouter, PrivateRoute, PublicRoute
+  types/             → Tipos TypeScript de dominio
+  utils/             → Helpers y esquemas de validación Zod
+```
+
+## Decisiones técnicas relevantes
+
+- **Autenticación**: JWT via cookies HttpOnly. El frontend no gestiona tokens directamente.
+- **Rutas protegidas**: `PrivateRoute` redirige usuarios no autenticados a `/login`. `PublicRoute` redirige usuarios ya autenticados a `/dashboard`.
+- **Estado del servidor**: TanStack Query v5 para caché y sincronización. Sin `onError` global en el QueryClient para evitar toasts duplicados.
+- **Polling de jobs**: `JobPoller` es un componente sin render que ejecuta polling sobre los jobs activos. Al montar sincroniza con `GET /video/job-status/processing`.
+- **Errores 401/403**: El interceptor de Axios despacha un `CustomEvent` que el `AuthProvider` escucha para redirigir sin usar `window.location.href`.
+- **localStorage**: Todo acceso centralizado en `lib/storage.ts` con funciones tipadas.
+- **Variables de entorno**: Solo se accede a `import.meta.env` desde `config/env.ts`.
